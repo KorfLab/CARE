@@ -143,7 +143,7 @@ parser.add_argument("-s", "--seed", type=int, default=1,
 parser.add_argument("-z", "--gzip", action="store_true",
 	help="Output file in gzip-compressed format")
 parser.add_argument("--sort", action="store_true",
-	help="Sort the output by header")
+	help="Sort the output by header. Only for NCBI reads")
 parser.add_argument("-v", "--verbose", action="store_true",
 	help="More verbose output")
 args = parser.parse_args()
@@ -194,7 +194,7 @@ if args.r2:
 		if args.verbose:
 			print("Sorting new reads by header")
 		paired = list(zip(reservoir1, reservoir2))
-		paired.sort(key=lambda pair: pair[0][0].strip())
+		paired.sort(key=lambda pair: int(pair[0][0].strip().split()[0].split('.')[1]))
 		reservoir1, reservoir2 = zip(*paired)
 		reservoir1 = list(reservoir1)
 		reservoir2 = list(reservoir2)
@@ -226,7 +226,7 @@ else:
 	if args.sort:
 		if args.verbose:
 			print("Sorting new reads by header")
-		reservoir = sorted(reservoir, key=lambda read: read[0].strip())
+		reservoir = sorted(reservoir, key=lambda read: int(read[0].strip().split()[0].split('.')[1]))
 	base1 = remove_extensions(os.path.basename(args.r1), extensions_to_remove)
 	out_file = base1 + ".minifq.fastq"
 	if args.gzip:
