@@ -142,6 +142,8 @@ parser.add_argument("-s", "--seed", type=int, default=1,
 	help="Set seed for random number generator")
 parser.add_argument("-z", "--gzip", action="store_true",
 	help="Output file in gzip-compressed format")
+parser.add_argument("--sort", action="store_true",
+	help="Sort the output by header")
 parser.add_argument("-v", "--verbose", action="store_true",
 	help="More verbose output")
 args = parser.parse_args()
@@ -188,6 +190,12 @@ else:
 
 extensions_to_remove = [".fq", ".fastq", ".fq.gz", ".fastq.gz"]
 if args.r2:
+	if args.sort:
+		paired = list(zip(reservoir1, reservoir2))
+		paired.sort(key=lambda pair: pair[0][0].strip())
+		reservoir1, reservoir2 = zip(*paired)
+		reservoir1 = list(reservoir1)
+		reservoir2 = list(reservoir2)
 	base1 = remove_extensions(os.path.basename(args.r1), extensions_to_remove)
 	base2 = remove_extensions(os.path.basename(args.r2), extensions_to_remove)
 	out1 = base1 + ".minifq.fastq"
@@ -213,6 +221,8 @@ if args.r2:
 		print(f"\t{out2} - {human_readable_size(out2_size)}")
 		print("Finished processing paired-end files")
 else:
+	if args.sort:
+		reservoir = sorted(reservoir, key=lambda read: read[0].strip())
 	base1 = remove_extensions(os.path.basename(args.r1), extensions_to_remove)
 	out_file = base1 + ".minifq.fastq"
 	if args.gzip:
