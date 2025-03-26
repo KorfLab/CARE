@@ -62,13 +62,13 @@ def validate_pair_fastq(file1, file2, verbose=False):
 	f2.close()
 
 	if count1 % 4 != 0 or count2 % 4 != 0:
-		sys.exit("Error: One of the input FASTQ files does not contain a multiple of 4 lines.")
+		sys.exit("Error: One of the input FASTQ files does not contain a multiple of 4 lines")
 	reads1 = count1 // 4
 	reads2 = count2 // 4
 	if reads1 != reads2:
 		sys.exit(f"Error: Paired FASTQ files have a different number of reads: {reads1} versus {reads2}")
 	if verbose:
-		print(f"Paired files validated: {reads1} read pairs found in each file.")
+		print(f"Paired files validated: {reads1} read pairs found in each file")
 	return reads1
 
 
@@ -131,7 +131,7 @@ def reservoir_sample_paired(fp1, fp2, k):
 # argparse #
 ############
 
-parser = argparse.ArgumentParser(description="Shrink FASTQ file by randomly subsetting.")
+parser = argparse.ArgumentParser(description="Shrink FASTQ file by randomly subsetting")
 parser.add_argument("--r1", required=True,
 	help="Path to input FASTQ file for reads 1")
 parser.add_argument("--r2", 
@@ -179,7 +179,7 @@ else:
 	fin1.close()
 	if args.verbose:
 		print(f"Total reads in input: {total_reads}")
-		print(f"Selecting {args.numReads} reads randomly.")
+		print(f"Selecting {args.numReads} reads randomly")
 
 
 #######
@@ -196,7 +196,7 @@ if args.r2:
 		out1 += ".gz"
 		out2 += ".gz"
 	if args.verbose:
-		print(f"Writing output to:\n  {out1}\n  {out2}")
+		print(f"Writing output to:\n\t{out1}\n\t{out2}")
 	fout1 = smart_open_write(out1, args.gzip)
 	fout2 = smart_open_write(out2, args.gzip)
 	for read in reservoir1:
