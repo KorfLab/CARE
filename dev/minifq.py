@@ -191,6 +191,8 @@ else:
 extensions_to_remove = [".fq", ".fastq", ".fq.gz", ".fastq.gz"]
 if args.r2:
 	if args.sort:
+		if args.verbose:
+			print("Sorting new reads by header")
 		paired = list(zip(reservoir1, reservoir2))
 		paired.sort(key=lambda pair: pair[0][0].strip())
 		reservoir1, reservoir2 = zip(*paired)
@@ -222,6 +224,8 @@ if args.r2:
 		print("Finished processing paired-end files")
 else:
 	if args.sort:
+		if args.verbose:
+			print("Sorting new reads by header")
 		reservoir = sorted(reservoir, key=lambda read: read[0].strip())
 	base1 = remove_extensions(os.path.basename(args.r1), extensions_to_remove)
 	out_file = base1 + ".minifq.fastq"
