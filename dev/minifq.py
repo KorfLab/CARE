@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import argparse
 import os
 import gzip
@@ -7,7 +8,7 @@ import sys
 
 
 #########
-# Tools #
+# tools #
 #########
 
 def human_readable_size(num):
@@ -73,7 +74,7 @@ def validate_pair_fastq(file1, file2, verbose=False):
 
 
 #############
-# Reservior #
+# reservior #
 #############
 
 def reservoir_sample_single(fp, k):
