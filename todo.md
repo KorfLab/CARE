@@ -2,15 +2,23 @@
 
 ## Todo List
 
-1. Make test data
-    1a. Re-learn Slurm commands and job submission processes
-    1b. Determine tasks to test (qc, trimming, read alignment, sort, markdup, what else?)
-2. Determine programs to test (fastqc, trim-galore, trimmomatic, various alignment tools, samtools and its various commands, what else?)
-3. Create environment and write push button tester program
-4. Test each task with each program in batch
-5. Make a figure of resource usage (including time) scaling with task size/complexity
-6. Write a useful manual on cluster computing resource estimation
-7. Make a push button UI for quick estimate
+1. Focusing on alignment first
+    - Create dev data (obtain small SAM)
+    - Develop a genome and read size subsetter by percentage
+    - Demo the subsetter with small test data and a tutorial
+2. More experiments on alignment performance (momory and time, for multiple aligners)
+    - Alignment on various genome size (subsetted genomes)
+    - Alignment with various read length (75, 100, 125, 150?)
+    - number of reads (1k, 2k, 4k, 8k ...)
+    - number of CPUs (1, 2, 4, 8, ...)
+3. Determine other tasks to test (qc, trimming, sort, markdup, what else?)
+4. Determine programs to test (fastqc, trim-galore, trimmomatic, various alignment tools, samtools and its various commands, ...)
+5. Create environment and write push button tester program
+6. Test each task with each program in batch
+7. Make a figure of resource usage (including time) scaling with task size/complexity (automated)
+8. Write a useful manual on cluster computing resource estimation
+   - Alignment
+   - Other tasks
 
 ## Description
 

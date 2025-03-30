@@ -161,11 +161,11 @@ parser = argparse.ArgumentParser(
 	description="Shrink a genome and subset FASTQ files to a given scale")
 parser.add_argument("-g", "--genome", type=str, required=True,
 	help="Genome FASTA file")
-parser.add_argument("-s", "--sam", type=str, required=True,
+parser.add_argument("-s", "--sam", type=str,
 	help="SAM file containing reads alignments")
 parser.add_argument("-p", "--scale", type=float, required=True,
 	help="Scale to shrink the genome to compared to original")
-parser.add_argument("--r1", type=str, required=True,
+parser.add_argument("--r1", type=str,
 	help="FASTQ file for reads")
 parser.add_argument("--r2", type=str, 
 	help="FASTQ file for paired-end read2")
@@ -182,6 +182,15 @@ args = parser.parse_args()
 
 if args.scale >= 1:
 	sys.exit(f"Error: The scale value must be < 1 (provided scale: {args.scale})")
+
+if args.r2 is not None and args.r1 is None:
+	sys.exit("Error: --r2 is provided without --r1")
+
+if args.sam is not None and args.r1 is None:
+	sys.exit("Error: SAM file is provided without FASTQ")
+
+if args.r1 is not None and args.sam is None:
+	sys.exit("Error: FASTQ file(s) is provided without a SAM file")
 
 
 ##############
@@ -204,7 +213,10 @@ if args.verbose:
 		print(f"\tOld genome size: {human_readable_size(old_size)}")
 		print(f"\tNew genome size: {human_readable_size(new_size)}")
 	except Exception as e:
-		print("Warning: Unable to retrieve genome file sizes.")
+		print("Warning: Unable to retrieve genome file sizes")
+
+if args.sam is None and args.r1 is None and args.r2 is None:
+	sys.exit(0)
 
 
 ############
