@@ -27,7 +27,7 @@ def smart_open_read(filename):
 		return gzip.open(filename, "rt")
 	else:
 		return open(filename, "r")
-	
+
 
 def smart_open_write(filename, use_gzip):
 	"""Open a file for writing, using gzip if required"""
@@ -167,7 +167,7 @@ parser.add_argument("-p", "--scale", type=float, required=True,
 	help="Scale to shrink the genome to compared to original")
 parser.add_argument("--r1", type=str,
 	help="FASTQ file for reads")
-parser.add_argument("--r2", type=str, 
+parser.add_argument("--r2", type=str,
 	help="FASTQ file for paired-end read2")
 parser.add_argument("-z", "--gzip", action="store_true",
 	help="Write output FASTQ file(s) in gzipped format")
@@ -216,6 +216,7 @@ if args.verbose:
 		print("Warning: Unable to retrieve genome file sizes")
 
 if args.sam is None and args.r1 is None and args.r2 is None:
+	print(f"\nGenome subset to {args.scale * 100}%")
 	sys.exit(0)
 
 
