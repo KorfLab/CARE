@@ -46,7 +46,7 @@ This will create a SAM file at `star_output/Aligned.out.sam`.
 
 ## Step 3: Shrink Genome and Reads Using `subset.py`
 
-Now we use `subset.py` to shrink the genome and reads based on the alignment information. With `-p 0.5` or `--scale 0.5`, it will create a new genome containing only the first 50% of each chromosome, and only retain reads that still fully align within this shortened genome.
+Now we use `subset.py` to shrink the genome and reads based on the alignment information. With `-p 0.5` or `--scale 0.5`, it will create a new genome containing only the first 50% of each chromosome, and **only retain reads that still fully align** within this shortened genome.
 
 Make sure you are in the /demo directory.
 
@@ -66,11 +66,11 @@ This will produce:
 
 You will also get printed output summarizing how many reads were kept and the new sizes of the genome and read files.
 
-If you prefer gzipped output, add the `-z` flag will output:
+If you prefer gzipped output, add the `-z` flag will create the following file instead:
 
-- `readsx3000.shrunk.fastq.gz`: (compressed FASTQ)
+- `readsx3000.shrunk.fastq.gz`: compressed FASTQ file with only the reads that still align to the shrunk genome
 
-Note `STAR` won't take a compressed FASTQ file as input. Use `gzip -dk readsx3000.shrunk.fastq.gz` to uncompress it.
+Note `STAR` won't take a compressed FASTQ file as input during read alignment. Use `gzip -dk readsx3000.shrunk.fastq.gz` to uncompress it first.
 
 That's it. You now have a downsized genome and corresponding reads, which can be used for testing or benchmarking on smaller scales.
 
@@ -93,7 +93,6 @@ This is the "ideal" case: every read aligns successfully.
 Make sure to index the shrunk genome first.
 
 ```bash
-# Index the shrunken genome if not done already
 mkdir ref/shrunk
 STAR --runMode genomeGenerate \
      --runThreadN 4 \
@@ -139,11 +138,11 @@ This simulates a scenario where half of the reads won't map to the target genome
 
 ## Summary
 
-| Alignment Run                  | Expected Alignment Rate | Purpose                             | CPU Time |
-| ------------------------------ | ----------------------- | ----------------------------------- | -------- |
-| Filtered reads - Shrunk genome | =100%                   | Ideal-case performance benchmark    | ?????? s |
-| Original reads - Shrunk genome | <100%                   | Stress-test for handling mismatches | ?????? s |
+| Alignment Run                  | Expected Alignment Rate | Purpose                             | Runtime |
+| ------------------------------ | ----------------------- | ----------------------------------- | ------- |
+| Filtered reads - Shrunk genome | =100%                   | Ideal-case performance benchmark    | ????? s |
+| Original reads - Shrunk genome | <100%                   | Stress-test for handling mismatches | ????? s |
 
 Use the timing results to determine whether handling unaligned reads adds a measurable performance cost to the aligner.
 
-Hint: the difference is HUGE.
+Hint: the difference is **HUGE**.
