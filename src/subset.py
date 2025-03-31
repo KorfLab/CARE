@@ -158,7 +158,7 @@ def fastq_reader(fp):
 ############
 
 parser = argparse.ArgumentParser(
-	description="Shrink a genome and subset FASTQ files to a given scale")
+	description="Shrink a genome or subset FASTQ files to a given scale")
 parser.add_argument("-g", "--genome", type=str, required=True,
 	help="Genome FASTA file")
 parser.add_argument("-s", "--sam", type=str,
@@ -180,7 +180,7 @@ args = parser.parse_args()
 # check #
 #########
 
-if args.scale >= 1:
+if args.scale > 1:
 	sys.exit(f"Error: The scale value must be < 1 (provided scale: {args.scale})")
 
 if args.r2 is not None and args.r1 is None:
