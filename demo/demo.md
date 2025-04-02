@@ -13,6 +13,21 @@ For showcasing purposes, we will be using `STAR` as the sequence aligner to obta
 
 ---
 
+## Step 0: Generate a Subset of the Genome Using `subset.py`'s `xfa` Subcommand (Already done)
+
+To obtain a small-scale genome for testing, we can use the  `subset.py`'s `xfa` subcommand to shrink a full genome FASTA. For this tutorial, a partial C. elegans genome is generated using the program. It represents the first 1% of all the sequences in the complete C. elegans genome (from WBcel235.fa, downloaded from NCBI). You can find it as `ref/1pCe.fa` and we will use this as our target genome throughout this demo.
+
+```bash
+python3 ../src/subset.py xfa \
+    -g WBcel235.fa \
+    -p 0.01 \
+    -v
+```
+
+This produces a new file called WBcel235.shrunk.fa, which was renamed to `ref/1pCe.fa` for consistency with the rest of this tutorial.
+
+---
+
 ## Step 1: Index the Genome
 
 First, index the genome with STAR. Since this is a small genome (1%), we set `--genomeSAindexNbases` to 8.
@@ -44,17 +59,17 @@ This will create a SAM file at `star_output/Aligned.out.sam`.
 
 ---
 
-## Step 3: Shrink Genome and Reads Using `subset.py`
+## Step 3: Shrink Genome and Reads Using `subset.py`'s `xfq` Subcommand
 
-Now we use `subset.py` to shrink the genome and reads based on the alignment information. With `-p 0.5` or `--scale 0.5`, it will create a new genome containing only the first 50% of each chromosome, and **only retain reads that still fully align** within this shortened genome.
+Now we use `subset.py`'s `xfq` subcommand to shrink the genome and reads based on the alignment information. With `-p 0.5` or `--scale 0.5`, it will create a new genome containing only the first 50% of each chromosome, and **only retain reads that still fully align** within this shortened genome.
 
 Make sure you are in the /demo directory.
 
 ```bash
-python3 ../src/subset.py \
-    --genome ref/1pCe.fa \
-    --sam star_output/Aligned.out.sam \
-    --scale 0.5 \
+python3 ../src/subset.py xfq \
+    -g ref/1pCe.fa \
+    -s star_output/Aligned.out.sam \
+    -p 0.5 \
     --r1 readsx3000.fastq \
     -v
 ```
@@ -66,7 +81,7 @@ This will produce:
 
 You will also get printed output summarizing how many reads were kept and the new sizes of the genome and read files.
 
-If you prefer gzipped output, add the `-z` flag will create the following file instead:
+If you prefer gzipped output, add the -z flag to compress the output FASTQ, producing the following file instead:
 
 - `readsx3000.shrunk.fastq.gz`: compressed FASTQ file with only the reads that still align to the shrunk genome
 
