@@ -10,4 +10,3 @@ dependencies:
   - minimap2
   - samtools
   - star
-  - tophat
