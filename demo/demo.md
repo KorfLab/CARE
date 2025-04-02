@@ -81,7 +81,7 @@ This will produce:
 
 You will also get printed output summarizing how many reads were kept and the new sizes of the genome and read files.
 
-If you prefer gzipped output, add the -z flag to compress the output FASTQ, producing the following file instead:
+If you prefer gzipped output, add the `-z` flag to compress the output FASTQ, producing the following file instead:
 
 - `readsx3000.shrunk.fastq.gz`: compressed FASTQ file with only the reads that still align to the shrunk genome
 
