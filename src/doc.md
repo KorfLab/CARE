@@ -59,7 +59,7 @@ Given a SAM file and FASTQ reads, keep only the reads that still align within th
 - `-z`, `--gzip`: gzip the output FASTQ files
 - `-v`, `--verbose`: print filtering stats and file size info
 
-## Behavior
+### Behavior
 
 - Writes new FASTQ files named `[r1].shrunk.fastq` and optionally `[r2].shrunk.fastq`.
 - If `-z` is set, output files will have the `.gz` extension.
