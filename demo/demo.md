@@ -1,6 +1,6 @@
 # Subsetter Tutorial: Shrinking a Genome and Reads to Specified Percentage
 
-This tutorial demonstrates how to use the `subset.py` script under the `/src` directory to shrink both a genome and a set of reads based on a SAM file. This can be useful for generating scaled-down test datasets for performance benchmarking or debugging while ensuring the scaled down reads would all align to the scaled down genome.
+This tutorial demonstrates how to use the `subset.py` script under the `src/` directory to shrink both a genome and a set of reads based on a SAM file. This can be useful for generating scaled-down test datasets for performance benchmarking or debugging while ensuring the scaled down reads would all align to the scaled down genome.
 
 We will walk through shrinking both a genome FASTA and corresponding FASTQ reads to 50% of their original capacity. 
 
