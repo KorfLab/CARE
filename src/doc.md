@@ -50,7 +50,7 @@ Given a SAM file and FASTQ reads, keep only the reads that still align within th
 
 - `-g`, `--genome`: specify input FASTA file, original or shrunk
 - `-s`, `--sam`: specify alignment file in SAM format
-- `-p`, `--scale`: float in (0, 1]; if 1.0, genome is only red and left unchanged
+- `-p`, `--scale`: float in (0, 1]; if 1.0, genome is only read and left unchanged
 - `--r1`: FASTQ file (single-end or first pair)
 
 ### Optional
