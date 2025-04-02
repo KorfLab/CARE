@@ -108,3 +108,4 @@ venv.bak/
 
 /tutorial
 /backup
+/src/subset.test.py
