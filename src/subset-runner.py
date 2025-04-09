@@ -79,7 +79,9 @@ for p in pcts:
 	cmd = ["mv", "-f", src, dst]
 	run_cmd(' '.join(cmd))
 
-min_pct_genome_file = os.path.join(gdir, f"ref-{f"{int(min(pcts) * 100)}p"}.fa")
+min_pct = min(pcts)
+min_pct_str = f"{int(min_pct * 100)}p"
+min_pct_genome_file = os.path.join(gdir, f"ref-{min_pct_str}.fa")
 
 
 ########
