@@ -104,9 +104,9 @@ if args.aligner:
 			run_cmd(' '.join(cmd))
 
 
-###################
-# index and align #
-###################
+#######################
+# index align and xfq #
+#######################
 
 for aligner in args.aligner:
 	aligner_dir = os.path.join(gdir, f"genomes-{aligner}")
@@ -174,3 +174,39 @@ for aligner in args.aligner:
 		continue
 
 	run_cmd(cmd)
+
+	print(f"\n[xfq] filtering reads for {aligner} referencing SAM")
+
+	cmd = [
+		"python3", "subset.py", "xfq",
+		"-g", genome_fa,
+		"-s", sam_out,
+		"-p", f"{min_pct:.2f}",
+		"--r1", args.r1
+	]
+
+	if args.r2:
+		cmd += ["--r2", args.r2]
+
+	cmd += ["-v"]
+
+	run_cmd(" ".join(cmd))
+
+	r1_base = os.path.basename(args.r1)
+	r1_root = os.path.splitext(r1_base)[0]
+	if "_" in r1_root:
+		pos = r1_root.find("_")
+		r1_root = r1_root[:pos]
+	r1_out = os.path.join(gdir, f"{r1_root}.shrunk.fastq")
+	dst_r1 = os.path.join(aligner_dir, f"{r1_root}.shrunk.{aligner}.fq")
+	run_cmd(f"mv -f {r1_out} {dst_r1}")
+
+	if args.r2:
+		r2_base = os.path.basename(args.r2)
+		r2_root = os.path.splitext(r2_base)[0]
+		if "_" in r2_root:
+			pos = r2_root.find("_")
+			r2_root = r2_root[:pos]
+		r2_out = os.path.join(gdir, f"{r2_root}.shrunk.fastq")
+		dst_r2 = os.path.join(aligner_dir, f"{r2_root}.shrunk.{aligner}.fq")
+		run_cmd(f"mv -f {r2_out} {dst_r2}")
