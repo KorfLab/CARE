@@ -15,6 +15,12 @@ def run_cmd(cmd):
 		sys.exit(f'FAILED: {cmd}')
 
 
+def run_cmd_capture(cmd):
+	"""Run a command and catch its stdout"""
+	print(f"[capture] {cmd}")
+	return os.popen(cmd).read()
+
+
 ############
 # argparse #
 ############
@@ -27,6 +33,13 @@ parser.add_argument("-y", "--yaml", required=True,
 	help="YAML file of a list of percentages")
 parser.add_argument("-a", "--aligner", nargs='+',
 	help="Aligners to prepare genome folders for")
+parser.add_argument("--r1", required=True, 
+	help="FASTQ file R1")
+parser.add_argument("--r2",
+	help="FASTQ file R2 (if paired-end)")
+parser.add_argument("-t", "--thread", type=int, default=4,
+	help="Threads for aligners")
+
 
 args = parser.parse_args()
 
@@ -66,9 +79,11 @@ for p in pcts:
 	cmd = ["mv", "-f", src, dst]
 	run_cmd(' '.join(cmd))
 
+min_pct_genome_file = os.path.join(gdir, f"ref-{f"{int(min(pcts) * 100)}p"}.fa")
+
 
 ########
-# Move #
+# move #
 ########
 
 if args.aligner:
@@ -85,3 +100,75 @@ if args.aligner:
 			dst = os.path.join(aligner_dir, ref)
 			cmd = ["cp", "-f", src, dst]
 			run_cmd(' '.join(cmd))
+
+
+###################
+# index and align #
+###################
+
+for aligner in args.aligner:
+	aligner_dir = os.path.join(gdir, f"genomes-{aligner}")
+	genome_fa = os.path.join(aligner_dir, f"ref-{min_pct_genome_file}.fa")
+
+	# indexing
+	if aligner == "star":
+		tmp_dir = os.path.join(aligner_dir, "tmp")
+		os.makedirs(tmp_dir, exist_ok=True)
+
+		msg = run_cmd_capture(f"STAR --runMode genomeGenerate --runThreadN {args.thread} --genomeDir {tmp_dir} --genomeFastaFiles {genome_fa} 2>&1")
+		recommended = None
+		for line in msg.splitlines():
+			if "genomeSAindexNbases" in line and "recommended" in line:
+				recommended = line.split()[-1]
+				break
+
+		if recommended is not None:
+			print(f"[STAR] Using recommended genomeSAindexNbases = {recommended}")
+			run_cmd(f"rm -rf {tmp_dir}")
+			run_cmd(f"STAR --runMode genomeGenerate --runThreadN {args.thread} --genomeDir {aligner_dir} --genomeFastaFiles {genome_fa} --genomeSAindexNbases {recommended}")
+		else:
+			print("[STAR] No recommendation found, using default genomeSAindexNbases")
+			run_cmd(f"mv {tmp_dir}/* {aligner_dir}")
+			run_cmd(f"rm -rf {tmp_dir}")
+	elif aligner == "hisat2":
+		run_cmd(f"hisat2-build -p {args.thread} {genome_fa} {aligner_dir}")
+	elif aligner == "bowtie2":
+		run_cmd(f"bowtie2-build -p {args.thread} {genome_fa} {aligner_dir}")
+	elif aligner == "bwa":
+		run_cmd(f"bwa index -t {args.thread} {genome_fa}")
+	elif aligner == "minimap2":
+		run_cmd(f"minimap2 -d {os.path.join(aligner_dir, 'ref.mmi')} {genome_fa}")
+
+	# aligning
+	sam_out = os.path.join(aligner_dir, f"subset-{min_pct_genome_file}.sam")
+	if aligner == "star":
+		if args.r2:
+			cmd = f"STAR --runMode alignReads --genomeDir {aligner_dir} --readFilesIn {args.r1} {args.r2} --runThreadN {args.thread} --outFileNamePrefix {aligner_dir}/subset- --outSAMtype SAM"
+		else:
+			cmd = f"STAR --runMode alignReads --genomeDir {aligner_dir} --readFilesIn {args.r1} --runThreadN {args.thread} --outFileNamePrefix {aligner_dir}/subset- --outSAMtype SAM"
+	elif aligner == "hisat2":
+		if args.r2:
+			cmd = f"hisat2 -p {args.thread} -x {genome_fa} -1 {args.r1} -2 {args.r2} -S {sam_out}"
+		else:
+			cmd = f"hisat2 -p {args.thread} -x {genome_fa} -U {args.r1} -S {sam_out}"
+	elif aligner == "bowtie2":
+		if args.r2:
+			cmd = f"bowtie2 -p {args.thread} -x {genome_fa} -1 {args.r1} -2 {args.r2} -S {sam_out}"
+		else:
+			cmd = f"bowtie2 -p {args.thread} -x {genome_fa} -U {args.r1} -S {sam_out}"
+	elif aligner == "bwa":
+		if args.r2:
+			cmd = f"bwa mem -t {args.thread} {genome_fa} {args.r1} {args.r2} > {sam_out}"
+		else:
+			cmd = f"bwa mem -t {args.thread} {genome_fa} {args.r1} > {sam_out}"
+	elif aligner == "minimap2":
+		mmi = os.path.join(aligner_dir, "ref.mmi")
+		if args.r2:
+			cmd = f"minimap2 -t {args.thread} -ax sr {mmi} {args.r1} {args.r2} > {sam_out}"
+		else:
+			cmd = f"minimap2 -t {args.thread} -ax sr {mmi} {args.r1} > {sam_out}"
+	else:
+		print(f"[skip] aligner not supported: {aligner}")
+		continue
+
+	run_cmd(cmd)
