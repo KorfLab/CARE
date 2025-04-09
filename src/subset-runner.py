@@ -52,9 +52,9 @@ parser.add_argument("--r1", required=True,
 parser.add_argument("--r2",
 	help="FASTQ file R2 (if paired-end)")
 parser.add_argument("-n", "----numReads", type=int, default=10000,
-    help="Number of reads to keep in fastq")
+    help="Number of reads to keep in fastq (default=10000)")
 parser.add_argument("-t", "--thread", type=int, default=4,
-	help="Threads for aligners")
+	help="Threads for aligners (default=4)")
 
 
 args = parser.parse_args()
