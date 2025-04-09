@@ -61,5 +61,5 @@ for p in pcts:
 
 	src = os.path.join(gdir, f"{gbsn}.shrunk.fa")
 	dst = os.path.join(gdir, f"ref-{int(p * 100)}p.fa")
-	cmd = ["mv", {src}, {dst}]
+	cmd = ["mv", src, dst]
 	run_cmd(' '.join(cmd))
