@@ -35,6 +35,15 @@ def move_shrunk_read(orig_path, aligner, target_dir):
 	run_cmd(f"mv -f {shrunk_path} {dst}")
 
 
+def get_shrunk_basename(path):
+	"""Extract the consistent basename used by move_shrunk_read"""
+	base = os.path.basename(path)
+	root = os.path.splitext(base)[0]
+	if "_" in root:
+		root = root.split("_")[0]
+	return root
+
+
 ############
 # argparse #
 ############
@@ -97,7 +106,8 @@ for p in pcts:
 
 min_pct = min(pcts)
 min_pct_str = f"{int(min_pct * 100)}p"
-min_pct_genome_file = os.path.join(gdir, f"ref-{min_pct_str}.fa")
+min_pct_genome_name = f"ref-{min_pct_str}"
+min_pct_genome_file = f"{min_pct_genome_name}.fa"
 
 
 ########
@@ -126,7 +136,7 @@ if args.aligner:
 
 for aligner in args.aligner:
 	aligner_dir = os.path.join(gdir, f"genomes-{aligner}")
-	genome_fa = os.path.join(aligner_dir, f"ref-{min_pct_genome_file}.fa")
+	genome_fa = os.path.join(aligner_dir, min_pct_genome_file)
 
 	# indexing
 	if aligner == "star":
@@ -158,7 +168,7 @@ for aligner in args.aligner:
 		run_cmd(f"minimap2 -d {os.path.join(aligner_dir, 'ref.mmi')} {genome_fa}")
 
 	# aligning
-	sam_out = os.path.join(aligner_dir, f"subset-{min_pct_genome_file}.sam")
+	sam_out = os.path.join(aligner_dir, f"subset-{min_pct_genome_name}.sam")
 	if aligner == "star":
 		if args.r2:
 			cmd = f"STAR --runMode alignReads --genomeDir {aligner_dir} --readFilesIn {args.r1} {args.r2} --runThreadN {args.thread} --outFileNamePrefix {aligner_dir}/subset- --outSAMtype SAM"
@@ -212,12 +222,14 @@ for aligner in args.aligner:
 	if args.r2:
 		move_shrunk_read(args.r2, aligner, aligner_dir)
 
-	r1_shrunk = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.fastq")
-	r1_mini = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.minifq.fastq")
+	r1_root = get_shrunk_basename(args.r1)
+	r1_shrunk = os.path.join(aligner_dir, f"{r1_root}.shrunk.{aligner}.fastq")
+	r1_mini = os.path.join(aligner_dir, f"{r1_root}.shrunk.{aligner}.minifq.fastq")
 
 	if args.r2:
-		r2_shrunk = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r2))[0]}.shrunk.{aligner}.fastq")
-		r2_mini = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r2))[0]}.shrunk.{aligner}.minifq.fastq")
+		r2_root = get_shrunk_basename(args.r2)
+		r2_shrunk = os.path.join(aligner_dir, f"{r2_root}.shrunk.{aligner}.fastq")
+		r2_mini = os.path.join(aligner_dir, f"{r2_root}.shrunk.{aligner}.minifq.fastq")
 
 		cmd = f"python3 minifq.py --r1 {r1_shrunk} --r2 {r2_shrunk} -n {args.numReads} -s 1 -v"
 	else:
