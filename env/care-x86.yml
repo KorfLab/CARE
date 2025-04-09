@@ -10,3 +10,4 @@ dependencies:
   - minimap2
   - samtools
   - star
+  - pyyaml
