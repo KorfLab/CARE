@@ -161,7 +161,7 @@ for aligner in args.aligner:
 	elif aligner == "hisat2":
 		run_cmd(f"hisat2-build -p {args.thread} {genome_fa} {aligner_dir}")
 	elif aligner == "bowtie2":
-		run_cmd(f"bowtie2-build --threads {args.thread} {genome_fa} {aligner_dir}")
+		run_cmd(f"bowtie2-build --threads {args.thread} {genome_fa} {genome_fa}")
 	elif aligner == "bwa":
 		run_cmd(f"bwa index -t {args.thread} {genome_fa}")
 	elif aligner == "minimap2":
