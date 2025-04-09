@@ -203,10 +203,11 @@ elif args.experiment == "var-rl":
 		else:
 			if len(args.r1) != len(args.r2):
 				sys.exit(f'ERROR: Unmatched number of pair-ended reads')
-			for reads1 in args.r1:
-				for reads2 in args.r2:
-					label = f"{os.path.basename(reads1)}_{aligner}"
-					time_align(aligner, reads1, reads2, args.thread, aligner_dir, label)
+			for i in range(len(args.r1)):
+				reads1 = args.r1[i]
+				reads2 = args.r2[i]
+				label = f"{os.path.basename(reads1)}_{aligner}"
+				time_align(aligner, reads1, reads2, args.thread, aligner_dir, label)
 elif args.experiment == "var-cpu":
 	for aligner in args.aligner:
 		aligner_dir = os.path.join(args.output, aligner)
