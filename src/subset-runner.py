@@ -209,3 +209,27 @@ for aligner in args.aligner:
 	move_shrunk_read(args.r1, aligner, aligner_dir)
 	if args.r2:
 		move_shrunk_read(args.r2, aligner, aligner_dir)
+
+		print(f"\n[minifq] sampling 10,000 reads for {aligner}")
+
+	r1_shrunk = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.fastq")
+	r1_mini = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.minifq.fastq")
+
+	if args.r2:
+		r2_shrunk = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r2))[0]}.shrunk.{aligner}.fastq")
+		r2_mini = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r2))[0]}.shrunk.{aligner}.minifq.fastq")
+
+		cmd = f"python3 minifq.py --r1 {r1_shrunk} --r2 {r2_shrunk} -n 10000 -s 1 -v"
+	else:
+		cmd = f"python3 minifq.py --r1 {r1_shrunk} -n 10000 -s 1 -v"
+
+	run_cmd(cmd)
+
+	if not os.path.exists(r1_mini):
+		moved_r1 = os.path.basename(r1_mini)
+		run_cmd(f"mv -f {moved_r1} {r1_mini}")
+
+	if args.r2:
+		if not os.path.exists(r2_mini):
+			moved_r2 = os.path.basename(r2_mini)
+			run_cmd(f"mv -f {moved_r2} {r2_mini}")
