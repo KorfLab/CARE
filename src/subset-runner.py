@@ -161,8 +161,7 @@ for aligner in args.aligner:
 	elif aligner == "hisat2":
 		run_cmd(f"hisat2-build -p {args.thread} {genome_fa} {aligner_dir}")
 	elif aligner == "bowtie2":
-		index_base = os.path.join(aligner_dir, "ref")
-		run_cmd(f"bowtie2-build -p {args.thread} {genome_fa} {index_base}")
+		run_cmd(f"bowtie2-build --threads {args.thread} {genome_fa} {aligner_dir}")
 	elif aligner == "bwa":
 		run_cmd(f"bwa index -t {args.thread} {genome_fa}")
 	elif aligner == "minimap2":
@@ -182,9 +181,9 @@ for aligner in args.aligner:
 			cmd = f"hisat2 -p {args.thread} -x {genome_fa} -U {args.r1} -S {sam_out}"
 	elif aligner == "bowtie2":
 		if args.r2:
-			cmd = f"bowtie2 -p {args.thread} -x {index_base} -1 {args.r1} -2 {args.r2} -S {sam_out}"
+			cmd = f"bowtie2 -p {args.thread} -x {genome_fa} -1 {args.r1} -2 {args.r2} -S {sam_out}"
 		else:
-			cmd = f"bowtie2 -p {args.thread} -x {index_base} -U {args.r1} -S {sam_out}"
+			cmd = f"bowtie2 -p {args.thread} -x {genome_fa} -U {args.r1} -S {sam_out}"
 	elif aligner == "bwa":
 		if args.r2:
 			cmd = f"bwa mem -t {args.thread} {genome_fa} {args.r1} {args.r2} > {sam_out}"
