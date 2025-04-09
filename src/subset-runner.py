@@ -21,6 +21,20 @@ def run_cmd_capture(cmd):
 	return os.popen(cmd).read()
 
 
+def move_shrunk_read(orig_path, aligner, target_dir):
+	"""Move and rename the shrunk fastq file into aligner dir"""
+	base = os.path.basename(orig_path)
+	root = os.path.splitext(base)[0]
+	if "_" in root:
+		root = root.split("_")[0]
+
+	shrunk_path = os.path.join(os.path.dirname(orig_path), f"{root}.shrunk.fastq")
+	new_fq = f"{root}.shrunk.{aligner}.fastq"
+	dst = os.path.join(target_dir, new_fq)
+
+	run_cmd(f"mv -f {shrunk_path} {dst}")
+
+
 ############
 # argparse #
 ############
@@ -192,21 +206,6 @@ for aligner in args.aligner:
 
 	run_cmd(" ".join(cmd))
 
-	r1_base = os.path.basename(args.r1)
-	r1_root = os.path.splitext(r1_base)[0]
-	if "_" in r1_root:
-		pos = r1_root.find("_")
-		r1_root = r1_root[:pos]
-	r1_out = os.path.join(gdir, f"{r1_root}.shrunk.fastq")
-	dst_r1 = os.path.join(aligner_dir, f"{r1_root}.shrunk.{aligner}.fq")
-	run_cmd(f"mv -f {r1_out} {dst_r1}")
-
+	move_shrunk_read(args.r1, aligner, aligner_dir)
 	if args.r2:
-		r2_base = os.path.basename(args.r2)
-		r2_root = os.path.splitext(r2_base)[0]
-		if "_" in r2_root:
-			pos = r2_root.find("_")
-			r2_root = r2_root[:pos]
-		r2_out = os.path.join(gdir, f"{r2_root}.shrunk.fastq")
-		dst_r2 = os.path.join(aligner_dir, f"{r2_root}.shrunk.{aligner}.fq")
-		run_cmd(f"mv -f {r2_out} {dst_r2}")
+		move_shrunk_read(args.r2, aligner, aligner_dir)
