@@ -22,7 +22,7 @@ def run_cmd_capture(cmd):
 	return os.popen(cmd).read()
 
 
-def index_genome(aligner, genome, aligner_dir):
+def index_genome(aligner, genome, thread, aligner_dir):
 	"""Index genome inside seperate aligner dir"""
 	os.makedirs(aligner_dir, exist_ok=True)
 	genome_copy = os.path.join(aligner_dir, "ref.fa")
@@ -33,7 +33,7 @@ def index_genome(aligner, genome, aligner_dir):
 		os.makedirs(tmp_dir, exist_ok=True)
 
 		msg = run_cmd_capture(
-			f"STAR --runMode genomeGenerate --genomeDir {tmp_dir} --genomeFastaFiles {genome_copy} 2>&1")
+			f"STAR --runMode genomeGenerate --runThreadN {thread} --genomeDir {tmp_dir} --genomeFastaFiles {genome_copy} 2>&1")
 		recommended = None
 		for line in msg.splitlines():
 			if "genomeSAindexNbases" in line and "recommended" in line:
@@ -44,17 +44,17 @@ def index_genome(aligner, genome, aligner_dir):
 			print(f"[STAR] Using recommended genomeSAindexNbases = {recommended}")
 			run_cmd(f"rm -rf {tmp_dir}")
 			run_cmd(
-				f"STAR --runMode genomeGenerate --genomeDir {aligner_dir} --genomeFastaFiles {genome_copy} --genomeSAindexNbases {recommended}")
+				f"STAR --runMode genomeGenerate --runThreadN {thread} --genomeDir {aligner_dir} --genomeFastaFiles {genome_copy} --genomeSAindexNbases {recommended}")
 		else:
 			print("[STAR] No recommendation found, using default genomeSAindexNbases")
 			run_cmd(f"mv {tmp_dir}/* {aligner_dir}")
 			run_cmd(f"rm -rf {tmp_dir}")
 	elif aligner == "hisat2":
-		run_cmd(f"hisat2-build {genome_copy} {aligner_dir}")
+		run_cmd(f"hisat2-build -p {thread} {genome_copy} {aligner_dir}")
 	elif aligner == "bowtie2":
-		run_cmd(f"bowtie2-build {genome_copy} {aligner_dir}")
+		run_cmd(f"bowtie2-build --threads {thread} {genome_copy} {aligner_dir}")
 	elif aligner == "bwa":
-		run_cmd(f"bwa index {genome_copy}")
+		run_cmd(f"bwa index -t {thread} {genome_copy}")
 	elif aligner == "minimap2":
 		run_cmd(f"minimap2 -d {os.path.join(aligner_dir, 'ref.mmi')} {genome_copy}")
 	else:
@@ -109,8 +109,7 @@ parser = argparse.ArgumentParser(
 subparsers = parser.add_subparsers(dest='experiment', help='Experiment type')
 
 # Exp 1: varying genome sizs
-exp1 = subparsers.add_parser(
-	'var-gn', help="Align against genomes with various sizes")
+exp1 = subparsers.add_parser('var-gn', help="Align against genomes with various sizes")
 exp1.add_argument('--r1', required=True,
                   help="FASTQ file for reads")
 exp1.add_argument('--r2',
@@ -125,8 +124,7 @@ exp1.add_argument('-o', '--output', required=True,
                   help="Output directory of experiment")
 
 # Exp 2: varying read lengths
-exp2 = subparsers.add_parser(
-	'var-rl', help="Align using reads with various read lengths")
+exp2 = subparsers.add_parser('var-rl', help="Align using reads with various read lengths")
 exp2.add_argument('--r1', nargs='+', required=True,
                   help="FASTQ files for reads of varying read lengths")
 exp2.add_argument('--r2', nargs='+',
@@ -141,8 +139,7 @@ exp2.add_argument('-o', '--output', required=True,
                   help="Output directory of experiment")
 
 # Exp 3: varying number of threads
-exp3 = subparsers.add_parser(
-	'var-cpu', help="Align using various numbers of threads")
+exp3 = subparsers.add_parser('var-cpu', help="Align using various numbers of threads")
 exp3.add_argument('--r1', required=True,
                   help="FASTQ file for reads")
 exp3.add_argument('--r2',
@@ -157,8 +154,7 @@ exp3.add_argument('-o', '--output', required=True,
                   help="Output directory of experiment")
 
 # Exp 4: varying coverage
-exp4 = subparsers.add_parser(
-	'var-cov', help="Align using reads with various coverages")
+exp4 = subparsers.add_parser('var-cov', help="Align using reads with various coverages")
 exp4.add_argument('--r1', nargs='+', required=True,
                   help="FASTQ files for reads of varying coverage")
 exp4.add_argument('--r2',
@@ -183,9 +179,11 @@ for aligner in args.aligner:
 	aligner_dir = os.path.join(args.output, aligner)
 	if args.experiment == "var-gn":
 		for genome in args.genome:
-			index_genome(aligner, genome, aligner_dir)
+			index_genome(aligner, genome, args.thread, aligner_dir)
+	elif args.experiment == "var-cpu":
+		index_genome(aligner, args.genome, 4, aligner_dir)
 	else:
-		index_genome(aligner, args.genome, aligner_dir)
+		index_genome(aligner, args.genome, args.thread, aligner_dir)
 
 if args.experiment == "var-gn":
 	for aligner in args.aligner:
