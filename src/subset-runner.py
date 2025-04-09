@@ -54,7 +54,7 @@ for p in pcts:
 	cmd = [
 		"python3", "subset.py", "xfa",
 		"-g", args.genome,
-		"-p", p,
+		"-p", f"{p:.2f}",
 		"-v"
 	]
 	run_cmd(' '.join(cmd))
