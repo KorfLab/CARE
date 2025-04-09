@@ -51,6 +51,8 @@ parser.add_argument("--r1", required=True,
 	help="FASTQ file R1")
 parser.add_argument("--r2",
 	help="FASTQ file R2 (if paired-end)")
+parser.add_argument("-n", "----numReads", type=int, default=10000,
+    help="Number of reads to keep in fastq")
 parser.add_argument("-t", "--thread", type=int, default=4,
 	help="Threads for aligners")
 
@@ -210,8 +212,6 @@ for aligner in args.aligner:
 	if args.r2:
 		move_shrunk_read(args.r2, aligner, aligner_dir)
 
-		print(f"\n[minifq] sampling 10,000 reads for {aligner}")
-
 	r1_shrunk = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.fastq")
 	r1_mini = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.minifq.fastq")
 
@@ -219,10 +219,11 @@ for aligner in args.aligner:
 		r2_shrunk = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r2))[0]}.shrunk.{aligner}.fastq")
 		r2_mini = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r2))[0]}.shrunk.{aligner}.minifq.fastq")
 
-		cmd = f"python3 minifq.py --r1 {r1_shrunk} --r2 {r2_shrunk} -n 10000 -s 1 -v"
+		cmd = f"python3 minifq.py --r1 {r1_shrunk} --r2 {r2_shrunk} -n {args.numReads} -s 1 -v"
 	else:
-		cmd = f"python3 minifq.py --r1 {r1_shrunk} -n 10000 -s 1 -v"
+		cmd = f"python3 minifq.py --r1 {r1_shrunk} -n {args.numReads} -s 1 -v"
 
+	print(f"\n[minifq] Sampling {args.numReads} reads for {aligner}")
 	run_cmd(cmd)
 
 	if not os.path.exists(r1_mini):
