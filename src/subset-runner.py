@@ -196,7 +196,7 @@ for aligner in args.aligner:
 		"python3", "subset.py", "xfq",
 		"-g", genome_fa,
 		"-s", sam_out,
-		"-p", 1,
+		"-p", "1",
 		"--r1", args.r1
 	]
 
