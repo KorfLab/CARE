@@ -160,9 +160,9 @@ for aligner in args.aligner:
 	sam_out = os.path.join(aligner_dir, f"subset-{min_pct_genome_name}.sam")
 	if aligner == "star":
 		if args.r2:
-			cmd = f"STAR --runMode alignReads --genomeDir {aligner_dir} --readFilesIn {args.r1} {args.r2} --runThreadN {args.thread} --outFileNamePrefix {aligner_dir}/subset- --outSAMtype SAM"
+			cmd = f"STAR --runMode alignReads --runThreadN {args.thread} --genomeDir {aligner_dir} --readFilesIn {args.r1} {args.r2} --outFileNamePrefix {aligner_dir}/subset- --outSAMtype SAM"
 		else:
-			cmd = f"STAR --runMode alignReads --genomeDir {aligner_dir} --readFilesIn {args.r1} --runThreadN {args.thread} --outFileNamePrefix {aligner_dir}/subset- --outSAMtype SAM"
+			cmd = f"STAR --runMode alignReads --runThreadN {args.thread} --genomeDir {aligner_dir} --readFilesIn {args.r1} --outFileNamePrefix {aligner_dir}/subset- --outSAMtype SAM"
 	elif aligner == "hisat2":
 		if args.r2:
 			cmd = f"hisat2 -p {args.thread} -x {genome_fa} -1 {args.r1} -2 {args.r2} -S {sam_out}"
@@ -191,6 +191,9 @@ for aligner in args.aligner:
 	run_cmd(cmd)
 
 	print(f"\n[xfq] Filtering reads for {aligner} referencing SAM")
+
+	if aligner == "star":
+		sam_out = "subset-Aligned.out.sam"
 
 	cmd = [
 		"python3", "subset.py", "xfq",
