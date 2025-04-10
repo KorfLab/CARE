@@ -236,3 +236,5 @@ for aligner in args.aligner:
 		if not os.path.exists(r2_mini):
 			moved_r2 = os.path.basename(r2_mini)
 			run_cmd(f"mv -f {moved_r2} {r2_mini}")
+
+print(f"\n[INFO] Obtained {int(min_pct * 100)}% reads for aligners: {args.aligner}")
