@@ -193,7 +193,7 @@ for aligner in args.aligner:
 	print(f"\n[xfq] Filtering reads for {aligner} referencing SAM")
 
 	if aligner == "star":
-		sam_out = "subset-Aligned.out.sam"
+		sam_out = os.path.join(aligner_dir, "subset-Aligned.out.sam")
 
 	cmd = [
 		"python3", "subset.py", "xfq",
