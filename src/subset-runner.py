@@ -231,9 +231,9 @@ for aligner in args.aligner:
 		r2_shrunk = os.path.join(aligner_dir, f"{r2_root}.shrunk.{aligner}.fastq")
 		r2_mini = os.path.join(aligner_dir, f"{r2_root}.shrunk.{aligner}.minifq.fastq")
 
-		cmd = f"python3 minifq.py --r1 {r1_shrunk} --r2 {r2_shrunk} -n {args.numReads} -s 1 -v"
+		cmd = f"python3 minifq.py --r1 {r1_shrunk} --r2 {r2_shrunk} -n {args.numReads} -s 1 --sort -v"
 	else:
-		cmd = f"python3 minifq.py --r1 {r1_shrunk} -n {args.numReads} -s 1 -v"
+		cmd = f"python3 minifq.py --r1 {r1_shrunk} -n {args.numReads} -s 1 --sort -v"
 
 	print(f"\n[minifq] Sampling {args.numReads} reads for {aligner}")
 	run_cmd(cmd)
