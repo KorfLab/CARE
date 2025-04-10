@@ -201,13 +201,13 @@ for aligner in args.aligner:
 
 	run_cmd(cmd)
 
-	print(f"\n[xfq] filtering reads for {aligner} referencing SAM")
+	print(f"\n[xfq] Filtering reads for {aligner} referencing SAM")
 
 	cmd = [
 		"python3", "subset.py", "xfq",
 		"-g", genome_fa,
 		"-s", sam_out,
-		"-p", f"{min_pct:.2f}",
+		"-p", 1,
 		"--r1", args.r1
 	]
 
