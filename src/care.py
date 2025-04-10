@@ -54,7 +54,7 @@ def index_genome(aligner, genome, thread, aligner_dir):
 	elif aligner == "bowtie2":
 		run_cmd(f"bowtie2-build --threads {thread} {genome_copy} {aligner_dir}")
 	elif aligner == "bwa":
-		run_cmd(f"bwa index -t {thread} {genome_copy}")
+		run_cmd(f"bwa index {genome_copy}")
 	elif aligner == "minimap2":
 		run_cmd(f"minimap2 -d {os.path.join(aligner_dir, 'ref.mmi')} {genome_copy}")
 	else:

@@ -152,7 +152,7 @@ for aligner in args.aligner:
 	elif aligner == "bowtie2":
 		run_cmd(f"bowtie2-build --threads {args.thread} {genome_fa} {genome_fa}")
 	elif aligner == "bwa":
-		run_cmd(f"bwa index -t {args.thread} {genome_fa}")
+		run_cmd(f"bwa index {genome_fa}")
 	elif aligner == "minimap2":
 		run_cmd(f"minimap2 -d {os.path.join(aligner_dir, 'ref.mmi')} {genome_fa}")
 
