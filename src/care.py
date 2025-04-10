@@ -50,9 +50,9 @@ def index_genome(aligner, genome, thread, aligner_dir):
 			run_cmd(f"mv {tmp_dir}/* {aligner_dir}")
 			run_cmd(f"rm -rf {tmp_dir}")
 	elif aligner == "hisat2":
-		run_cmd(f"hisat2-build -p {thread} {genome_copy} {aligner_dir}")
+		run_cmd(f"hisat2-build -p {thread} {genome_copy} {genome_copy}")
 	elif aligner == "bowtie2":
-		run_cmd(f"bowtie2-build --threads {thread} {genome_copy} {aligner_dir}")
+		run_cmd(f"bowtie2-build --threads {thread} {genome_copy} {genome_copy}")
 	elif aligner == "bwa":
 		run_cmd(f"bwa index {genome_copy}")
 	elif aligner == "minimap2":

@@ -148,7 +148,7 @@ for aligner in args.aligner:
 			run_cmd(f"mv {tmp_dir}/* {aligner_dir}")
 			run_cmd(f"rm -rf {tmp_dir}")
 	elif aligner == "hisat2":
-		run_cmd(f"hisat2-build -p {args.thread} {genome_fa} {aligner_dir}")
+		run_cmd(f"hisat2-build -p {args.thread} {genome_fa} {genome_fa}")
 	elif aligner == "bowtie2":
 		run_cmd(f"bowtie2-build --threads {args.thread} {genome_fa} {genome_fa}")
 	elif aligner == "bwa":
