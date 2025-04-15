@@ -1,5 +1,6 @@
 # toolbox.py
 
+import gzip
 import os
 import shutil
 import subprocess
@@ -65,6 +66,32 @@ def only_keep_ext(directory, ext):
 
 	if not at_least_one:
 		print(f"[only keep ext] WARNING: No *{ext} files found in {directory}")
+
+
+def human_readable_size(num):
+	"""Convert a file size in bytes to a human-readable format"""
+	suffix = "B"
+	for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
+		if abs(num) < 1024.0:
+			return f"{num:3.1f}{unit}{suffix}"
+		num /= 1024.0
+	return f"{num:.1f}Y{suffix}"
+
+
+def smart_open_read(filename):
+	"""Open a file for reading, support gzipped files"""
+	if filename.endswith('.gz'):
+		return gzip.open(filename, "rt")
+	else:
+		return open(filename, "r")
+
+
+def smart_open_write(filename, use_gzip):
+	"""Open a file for writing, using gzip if required"""
+	if use_gzip:
+		return gzip.open(filename, "wt")
+	else:
+		return open(filename, "w")
 
 
 def index(aligner, genome, threads, index_dir):
