@@ -108,4 +108,5 @@ venv.bak/
 /backup
 /src/subset.test.py
 /src/care.test.py
+/src/test.py
 /test

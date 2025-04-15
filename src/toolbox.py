@@ -44,6 +44,29 @@ def cp(src, dst):
 		return result
 
 
+def only_keep_ext(directory, ext):
+	"""Delete everything in a directory except files with the extension"""
+	if not ext.startswith("."):
+		ext = "." + ext
+
+	at_least_one = False
+
+	for item in os.listdir(directory):
+		path = os.path.join(directory, item)
+
+		if os.path.isdir(path):
+			shutil.rmtree(path)
+			print(f"[only keep ext] Removed directory: {path}")
+		elif not item.endswith(ext):
+			os.remove(path)
+			print(f"[only keep ext] Removed file: {path}")
+		else:
+			at_least_one = True
+
+	if not at_least_one:
+		print(f"[only keep ext] WARNING: No *{ext} files found in {directory}")
+
+
 def index(aligner, genome, threads, index_dir):
 	"""Index a genome for an aligner"""
 	os.makedirs(index_dir, exist_ok=True)
