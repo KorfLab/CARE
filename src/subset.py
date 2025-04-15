@@ -83,7 +83,7 @@ def shrink_genome(fin, scale, fout, verbose=False):
 
 def get_ref_consumed(cigar):
 	"""
-	Takes a CIGAR string, returns the reference length elapsed
+	Takes a CIGAR string, returns the reference length consumed
 	Sums the values for operations that consume the reference:
 	M, D, N, =, X
 	"""
