@@ -92,7 +92,7 @@ def index(aligner, genome, threads, index_dir):
 				recommended = line.split()[-1]
 				break
 
-		if recommended is not None:
+		if recommended:
 			print(f"[{aligner}] Using recommended genomeSAindexNbases = {recommended}")
 			run(["rm", "-rf", tmp_dir])
 
