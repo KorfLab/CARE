@@ -24,6 +24,26 @@ def run(cmd):
 	return result.stdout
 
 
+def cp(src, dst):
+	"""Copy file or directory from src to dst"""
+	if os.path.isdir(src):
+		if os.path.isdir(dst):
+			dst = os.path.join(dst, os.path.basename(src))
+		if os.path.exists(dst):
+			raise FileExistsError(f"[cp] ERROR: Target directory '{dst}' already exists")
+		shutil.copytree(src, dst)
+		print(f"[cp] Copied directory: {src} -> {dst}")
+		return dst
+	else:
+		if os.path.isdir(dst):
+			dst = os.path.join(dst, os.path.basename(src))
+		if os.path.isfile(dst):
+			raise FileExistsError(f"[cp] ERROR: Target file '{dst}' already exists")
+		result = shutil.copy(src, dst)
+		print(f"[cp] Copied file: {src} -> {result}")
+		return result
+
+
 def index(aligner, genome, threads, index_dir):
 	"""Index a genome for an aligner"""
 	os.makedirs(index_dir, exist_ok=True)
