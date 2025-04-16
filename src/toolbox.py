@@ -94,6 +94,15 @@ def smart_open_write(filename, use_gzip):
 		return open(filename, "w")
 
 
+def fastq_reader(fp):
+	"""Yields one FASTQ record 4 lines at a time"""
+	while True:
+		try:
+			yield [next(fp) for _ in range(4)]
+		except StopIteration:
+			break
+
+
 def index(aligner, genome, threads, index_dir):
 	"""Index a genome for an aligner"""
 	os.makedirs(index_dir, exist_ok=True)
