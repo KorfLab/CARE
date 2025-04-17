@@ -46,9 +46,11 @@ def cp(src, dst):
 
 
 def only_keep_ext(directory, ext):
-	"""Delete everything in a directory except files with the extension"""
-	if not ext.startswith("."):
-		ext = "." + ext
+	"""Delete everything in a directory except files with the given extensions"""
+	if isinstance(ext, str):
+		ext = [ext]
+
+	ext = [f".{e}" if not e.startswith(".") else e for e in ext]
 
 	at_least_one = False
 
@@ -58,14 +60,14 @@ def only_keep_ext(directory, ext):
 		if os.path.isdir(path):
 			shutil.rmtree(path)
 			print(f"[only keep ext] Removed directory: {path}")
-		elif not item.endswith(ext):
+		elif not any(item.endswith(e) for e in ext):
 			os.remove(path)
 			print(f"[only keep ext] Removed file: {path}")
 		else:
 			at_least_one = True
 
 	if not at_least_one:
-		print(f"[only keep ext] WARNING: No *{ext} files found in {directory}")
+		print(f"[only keep ext] WARNING: No matching {' '.join(ext)} files found in {directory}")
 
 
 def human_readable_size(num):
