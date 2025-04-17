@@ -1,7 +1,7 @@
 # Aligner class
 
 import os
-from toolbox import run, cp, only_keep_ext
+from toolbox import run, cp, timestamp, only_keep_ext
 
 
 class Aligner:
@@ -14,7 +14,7 @@ class Aligner:
 		self.threads = threads
 
 		self.time = time
-		self.timelog = os.path.join(outdir, f"{name}.time.log") if time else None
+		self.timelog = None
 
 		self.index_dir = os.path.join(outdir, f"{self.name}_index")
 		self.ref = os.path.join(self.index_dir, "ref.fa")
@@ -99,6 +99,7 @@ class StarAligner(Aligner):
 			cmd += ["--readFilesIn", self.r1]
 
 		if self.time:
+			self.timelog = os.path.join(self.outdir, f"{self.name}_{timestamp()}.time.log")
 			cmd = ["/usr/bin/time", "-v", "-o", self.timelog] + cmd
 
 		run(cmd)
@@ -142,6 +143,7 @@ class Hisat2Aligner(Aligner):
 			]
 
 		if self.time:
+			self.timelog = os.path.join(self.outdir, f"{self.name}_{timestamp()}.time.log")
 			cmd = ["/usr/bin/time", "-v", "-o", self.timelog] + cmd
 
 		run(cmd)
@@ -184,6 +186,7 @@ class Bowtie2Aligner(Aligner):
 			]
 
 		if self.time:
+			self.timelog = os.path.join(self.outdir, f"{self.name}_{timestamp()}.time.log")
 			cmd = ["/usr/bin/time", "-v", "-o", self.timelog] + cmd
 
 		run(cmd)
@@ -220,6 +223,7 @@ class BwaAligner(Aligner):
 		cmd += [">", self.sam]
 
 		if self.time:
+			self.timelog = os.path.join(self.outdir, f"{self.name}_{timestamp()}.time.log")
 			cmd = ["/usr/bin/time", "-v", "-o", self.timelog] + cmd
 
 		run(cmd)
@@ -256,6 +260,7 @@ class Minimap2Aligner(Aligner):
 		cmd += [">", self.sam]
 
 		if self.time:
+			self.timelog = os.path.join(self.outdir, f"{self.name}_{timestamp()}.time.log")
 			cmd = ["/usr/bin/time", "-v", "-o", self.timelog] + cmd
 
 		run(cmd)
