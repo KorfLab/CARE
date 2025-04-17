@@ -105,6 +105,49 @@ def fastq_reader(fp):
 			break
 
 
+def count_lines(fp):
+	"""Count lines in fp"""
+	count = 0
+	for _ in fp:
+		count += 1
+	return count
+
+
+def sc_fastq(file1, file2=None):
+	"""Sanity check single or paired FASTQ"""
+
+	with smart_open_read(file1) as f1:
+		lines1 = count_lines(f1)
+
+	if lines1 % 4 != 0:
+		print(f"[sc-fastq] ERROR: {file1} has {lines1} lines, which is not a multiple of 4")
+		sys.exit(1)
+
+	reads1 = lines1 // 4
+	print(f"[sc-fastq] {file1} has {reads1} valid reads")
+
+	if file2:
+		with smart_open_read(file2) as f2:
+			lines2 = count_lines(f2)
+
+		if lines2 % 4 != 0:
+			print(f"[sc-fastq] ERROR: {file2} has {lines2} lines, which is not a multiple of 4")
+			sys.exit(1)
+
+		reads2 = lines2 // 4
+
+		if reads1 != reads2:
+			print(f"[sc-fastq] ERROR: Mismatched read counts:\n"
+			      f"\t{file1} - {reads1} reads\n"
+			      f"\t{file2} - {reads2} reads")
+			sys.exit(1)
+
+		print(f"[sc-fastq] {file2} has {reads2} valid reads")
+		print(f"[sc-fastq] SC Complete: {file1} and {file2} validated")
+	else:
+		print(f"[sc-fastq] SC Complete: {file1} validated")
+
+
 def index(aligner, genome, threads, index_dir):
 	"""Index a genome for an aligner"""
 	os.makedirs(index_dir, exist_ok=True)
