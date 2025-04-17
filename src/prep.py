@@ -12,19 +12,6 @@ import toolbox
 # functions #
 #############
 
-def run_cmd(cmd):
-	"""Run a command and exit when failed"""
-	print(f"[run cmd] {cmd}")
-	if os.system(cmd) != 0:
-		sys.exit(f'FAILED: {cmd}')
-
-
-def run_cmd_capture(cmd):
-	"""Run a command and catch its stdout"""
-	print(f"[capture] {cmd}")
-	return os.popen(cmd).read()
-
-
 def move_shrunk_read(orig_path, aligner, target_dir):
 	"""Move and rename the shrunk fastq file into aligner dir"""
 	base = os.path.basename(orig_path)
