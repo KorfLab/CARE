@@ -1,45 +1,16 @@
 #!/usr/bin/env python3
 
 import argparse
-import gzip
 import os
 import re
 import sys
 
+import toolbox
+
 
 #########
-# tools #
+# funcs #
 #########
-
-def human_readable_size(num):
-	"""Convert a file size in bytes to a human-readable format"""
-	suffix = "B"
-	for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
-		if abs(num) < 1024.0:
-			return f"{num:3.1f}{unit}{suffix}"
-		num /= 1024.0
-	return f"{num:.1f}Y{suffix}"
-
-
-def smart_open_read(filename):
-	"""Open a file for reading, support gzipped files"""
-	if filename.endswith('.gz'):
-		return gzip.open(filename, "rt")
-	else:
-		return open(filename, "r")
-
-
-def smart_open_write(filename, use_gzip):
-	"""Open a file for writing, using gzip if required"""
-	if use_gzip:
-		return gzip.open(filename, "wt")
-	else:
-		return open(filename, "w")
-
-
-#############
-# functions #
-#############
 
 def write_to_new_genome(cur_header, cur_seqs, scale, outfile, verbose=False):
 	"""Helper function to process and write one chromosome's sequence"""
@@ -144,15 +115,6 @@ def validate_reads_from_sam(is_paired, sam, new_genome_lengths):
 	return valid_reads
 
 
-def fastq_reader(fp):
-	"""Yields one FASTQ record 4 lines at a time"""
-	while True:
-		try:
-			yield [next(fp) for _ in range(4)]
-		except StopIteration:
-			break
-
-
 ############
 # argparse #
 ############
@@ -190,11 +152,11 @@ args = parser.parse_args()
 
 if args.command is None:
 	parser.print_help()
-	print("\nerror: no subcommand specified, choose one of: {xfa, xfq}")
+	print("\n[subset] ERROR: no subcommand specified, choose one of: {xfa, xfq}")
 	sys.exit(1)
 
 if args.scale > 1:
-	sys.exit("error: scale must be <= 1")
+	sys.exit("[subset] ERROR: scale must be <= 1")
 
 
 ########
@@ -203,27 +165,27 @@ if args.scale > 1:
 
 if args.command == "xfa":
 	if int(args.scale) == 1:
-		sys.exit("Retained original genome")
+		sys.exit("[subset] Retained original genome")
 
 	if args.verbose:
-		print("Starting genome and reads subsetter")
-		print(f"\nProcessing genome file from {args.genome}")
+		print("[subset] Starting genome and reads subsetter")
+		print(f"\n[subset] Processing genome file from {args.genome}")
 
 	out_genome = os.path.splitext(args.genome)[0] + ".shrunk.fa"
 
 	shrink_genome(args.genome, args.scale, out_genome, args.verbose)
 
 	if args.verbose:
-		print(f"\nGenome written to {out_genome}")
+		print(f"\n[subset] Genome written to {out_genome}")
 	try:
 		old_size = os.path.getsize(args.genome)
 		new_size = os.path.getsize(out_genome)
-		print(f"\tOld genome size: {human_readable_size(old_size)}")
-		print(f"\tNew genome size: {human_readable_size(new_size)}")
+		print(f"\tOld genome size: {toolbox.human_readable_size(old_size)}")
+		print(f"\tNew genome size: {toolbox.human_readable_size(new_size)}")
 	except Exception as e:
-		print("warning: unable to retrieve genome file sizes")
+		print("[subset] WARNING: unable to retrieve genome file sizes")
 
-	print(f"\nGenome subset to {args.scale * 100}%")
+	print(f"\n[subset] Genome subset to {args.scale * 100}%")
 
 elif args.command == "xfq":
 	is_paired = args.r2 is not None
@@ -232,29 +194,29 @@ elif args.command == "xfq":
 	if int(args.scale) == 1:
 		genome_lengths = shrink_genome(args.genome, 1.0, None, False)
 		if args.verbose:
-			print("Scale is set to 1, retaining all genome")
+			print("[subset] Scale is set to 1, retaining all genome")
 	else:
 		if args.verbose:
-			print("Starting genome and reads subsetter")
-			print(f"\nProcessing genome file from {args.genome}")
+			print("[subset] Starting genome and reads subsetter")
+			print(f"\n[subset] Processing genome file from {args.genome}")
 
 		out_genome = os.path.splitext(in_genome)[0] + ".shrunk.fa"
 		genome_lengths = shrink_genome(in_genome, args.scale, out_genome, args.verbose)
 
 		if args.verbose:
-			print(f"\nGenome written to {out_genome}")
+			print(f"\n[subset] Genome written to {out_genome}")
 		try:
 			old_size = os.path.getsize(args.genome)
 			new_size = os.path.getsize(out_genome)
-			print(f"\tOld genome size: {human_readable_size(old_size)}")
-			print(f"\tNew genome size: {human_readable_size(new_size)}")
+			print(f"\t[subset] Old genome size: {toolbox.human_readable_size(old_size)}")
+			print(f"\t[subset] New genome size: {toolbox.human_readable_size(new_size)}")
 		except Exception as e:
-			print("warning: unable to retrieve genome file sizes")
+			print("[subset] WARNING: unable to retrieve genome file sizes")
 
-		print(f"\nGenome subset to {args.scale * 100}%")
+		print(f"\n[subset] Genome subset to {args.scale * 100}%")
 
 	if args.verbose:
-		print("\nProcessing SAM file for reads subsetting")
+		print("\n[subset] Processing SAM file for reads subsetting")
 
 	valid_reads = validate_reads_from_sam(is_paired, args.sam, genome_lengths)
 
@@ -273,22 +235,22 @@ elif args.command == "xfq":
 	kept_reads = 0
 
 	if args.verbose:
-		print("\nFiltering reads in FASTQ file(s)")
+		print("\n[subset] Filtering reads in FASTQ file(s)")
 
 	if is_paired:
-		in1 = smart_open_read(args.r1)
-		in2 = smart_open_read(args.r2)
-		out1 = smart_open_write(out_r1, args.gzip)
-		out2 = smart_open_write(out_r2, args.gzip)
+		in1 = toolbox.smart_open_read(args.r1)
+		in2 = toolbox.smart_open_read(args.r2)
+		out1 = toolbox.smart_open_write(out_r1, args.gzip)
+		out2 = toolbox.smart_open_write(out_r2, args.gzip)
 
-		for r1_read, r2_read in zip(fastq_reader(in1), fastq_reader(in2)):
+		for r1_read, r2_read in zip(toolbox.fastq_reader(in1), toolbox.fastq_reader(in2)):
 			total_reads += 1
 			q1 = r1_read[0].strip()[1:].split()[0]
 			q2 = r2_read[0].strip()[1:].split()[0]
 
 			if q1 != q2:
 				if args.verbose:
-					print(f"warning: read names do not match: {q1} vs {q2}. skipping")
+					print(f"[subset] WARNING: read names do not match: {q1} vs {q2}. skipping")
 				continue
 
 			if q1 in valid_reads and valid_reads[q1].get("first") and valid_reads[q1].get("second"):
@@ -301,10 +263,10 @@ elif args.command == "xfq":
 		out1.close()
 		out2.close()
 	else:
-		in1 = smart_open_read(args.r1)
-		out1 = smart_open_write(out_r1, args.gzip)
+		in1 = toolbox.smart_open_read(args.r1)
+		out1 = toolbox.smart_open_write(out_r1, args.gzip)
 
-		for read in fastq_reader(in1):
+		for read in toolbox.fastq_reader(in1):
 			total_reads += 1
 			q = read[0].strip()[1:].split()[0]
 			if q in valid_reads:
@@ -316,26 +278,26 @@ elif args.command == "xfq":
 
 	if args.verbose:
 		if is_paired:
-			print(f"\nTotal read pairs processed from FASTQ: {total_reads}")
-			print(f"Read pairs kept: {kept_reads}")
+			print(f"\n[subset] Total read pairs processed from FASTQ: {total_reads}")
+			print(f"[subset] Read pairs kept: {kept_reads}")
 		else:
-			print(f"\nTotal reads processed from FASTQ: {total_reads}")
-			print(f"Reads kept: {kept_reads}")
+			print(f"\n[subset] Total reads processed from FASTQ: {total_reads}")
+			print(f"[subset] Reads kept: {kept_reads}")
 
 	try:
 		old_r1_size = os.path.getsize(args.r1)
 		new_r1_size = os.path.getsize(out_r1)
-		print(f"\nFASTQ file: {args.r1}")
-		print(f"\tOld size: {human_readable_size(old_r1_size)}")
-		print(f"\tNew size: {human_readable_size(new_r1_size)}")
+		print(f"\n[subset] FASTQ file: {args.r1}")
+		print(f"\tOld size: {toolbox.human_readable_size(old_r1_size)}")
+		print(f"\tNew size: {toolbox.human_readable_size(new_r1_size)}")
 		if is_paired:
 			old_r2_size = os.path.getsize(args.r2)
 			new_r2_size = os.path.getsize(out_r2)
-			print(f"\nFASTQ file: {args.r2}")
-			print(f"\tOld size: {human_readable_size(old_r2_size)}")
-			print(f"\tNew size: {human_readable_size(new_r2_size)}")
+			print(f"\n[subset] FASTQ file: {args.r2}")
+			print(f"\tOld size: {toolbox.human_readable_size(old_r2_size)}")
+			print(f"\tNew size: {toolbox.human_readable_size(new_r2_size)}")
 	except Exception as e:
 		if args.verbose:
-			print("warning: unable to determine FASTQ file sizes")
+			print("[subset] WARNING: unable to determine FASTQ file sizes")
 
-	print(f"\nGenome and FASTQ subset to {args.scale * 100}%")
+	print(f"\n[subset] Genome and FASTQ subset to {args.scale * 100}%")
