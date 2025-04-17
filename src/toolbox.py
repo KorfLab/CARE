@@ -1,5 +1,6 @@
 # toolbox.py
 
+import datetime
 import gzip
 import os
 import shutil
@@ -146,6 +147,11 @@ def sc_fastq(file1, file2=None):
 		print(f"[sc-fastq] SC Complete: {file1} and {file2} validated")
 	else:
 		print(f"[sc-fastq] SC Complete: {file1} validated")
+
+
+def timestamp():
+	"""Return timestamp string of YYYYMMDD-HHMMSS-mmm"""
+	return datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f")[:-3]
 
 
 def index(aligner, genome, threads, index_dir):
