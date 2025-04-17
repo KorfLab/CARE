@@ -3,7 +3,6 @@
 import argparse
 import os
 import random
-import sys
 import toolbox
 
 
@@ -17,37 +16,6 @@ def remove_extensions(filename, extensions):
 		if filename.endswith(ext):
 			return filename[: -len(ext)]
 	return filename
-
-
-def validate_pair_fastq(file1, file2, verbose=False):
-	"""
-	Ensure that both paired-end FASTQ files have the same number of reads
-	Counts the total lines in each file and verifies that each is a multiple of 4,
-	and that the number of reads (lines/4) in both files are equal
-	"""
-	f1 = toolbox.smart_open_read(file1)
-	f2 = toolbox.smart_open_read(file2)
-
-	count1 = 0
-	count2 = 0
-	for _ in f1:
-		count1 += 1
-	for _ in f2:
-		count2 += 1
-	f1.close()
-	f2.close()
-
-	if count1 % 4 != 0 or count2 % 4 != 0:
-		sys.exit("[minifq] Error: One of the input FASTQ files does not contain a multiple of 4 lines")
-
-	reads1 = count1 // 4
-	reads2 = count2 // 4
-	if reads1 != reads2:
-		sys.exit(f"[minifq] Error: Paired FASTQ files have a different number of reads: {reads1} versus {reads2}")
-
-	if verbose:
-		print(f"[minifq] Paired files validated: {reads1} read pairs found in each file")
-	return reads1
 
 
 #############
@@ -138,7 +106,7 @@ if args.verbose:
 		print(f"\t{args.r2} - {toolbox.human_readable_size(r2_size)}")
 
 if args.r2:
-	total_pairs = validate_pair_fastq(args.r1, args.r2, args.verbose)
+	toolbox.sc_fastq(args.r1, args.r2)
 	fin1 = toolbox.smart_open_read(args.r1)
 	fin2 = toolbox.smart_open_read(args.r2)
 	reservoir1, reservoir2, total_reads = reservoir_sample_paired(fin1, fin2, args.numReads)
@@ -146,16 +114,17 @@ if args.r2:
 	fin2.close()
 
 	if args.verbose:
-		print(f"Total read pairs in input: {total_reads}")
-		print(f"Selecting {args.numReads} read pairs randomly")
+		print(f"[minifq] Total read pairs in input: {total_reads}")
+		print(f"[minifq] Selecting {args.numReads} read pairs randomly")
 else:
+	toolbox.sc_fastq(args.r1)
 	fin1 = toolbox.smart_open_read(args.r1)
 	reservoir, total_reads = reservoir_sample_single(fin1, args.numReads)
 	fin1.close()
 
 	if args.verbose:
-		print(f"Total reads in input: {total_reads}")
-		print(f"Selecting {args.numReads} reads randomly")
+		print(f"[minifq] Total reads in input: {total_reads}")
+		print(f"[minifq] Selecting {args.numReads} reads randomly")
 
 
 #######
@@ -200,14 +169,14 @@ if args.r2:
 	out2_size = os.path.getsize(out2)
 
 	if args.verbose:
-		print("Output file sizes:")
+		print("[minifq] Output file sizes:")
 		print(f"\t{out1} - {toolbox.human_readable_size(out1_size)}")
 		print(f"\t{out2} - {toolbox.human_readable_size(out2_size)}")
-		print("Finished processing paired-end files")
+		print("[minifq] Finished processing paired-end files")
 else:
 	if args.sort:
 		if args.verbose:
-			print("Sorting new reads by header")
+			print("[minifq] Sorting new reads by header")
 		reservoir = sorted(reservoir, key=lambda read: int(read[0].strip().split()[0].split('.')[1]))
 	
 	base1 = remove_extensions(os.path.basename(args.r1), extensions_to_remove)
@@ -217,7 +186,7 @@ else:
 		out_file += ".gz"
 
 	if args.verbose:
-		print(f"Writing output to: {out_file}")
+		print(f"[minifq] Writing output to: {out_file}")
 
 	fout = toolbox.smart_open_write(out_file, args.gzip)
 
@@ -227,5 +196,6 @@ else:
 	out_size = os.path.getsize(out_file)
 
 	if args.verbose:
-		print(f"Output file {out_file} size: {toolbox.human_readable_size(out_size)}")
-		print("Finished processing single-end file")
+		print(f"[minifq] Output file size:")
+		print(f"\t{out_file} - {toolbox.human_readable_size(out_size)}")
+		print("[minifq] Finished processing single-end file")
