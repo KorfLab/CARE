@@ -5,35 +5,43 @@ from toolbox import run, cp, only_keep_ext
 
 
 class Aligner:
-	def __init__(self, name, genome, outdir, r1, r2=None, threads=4):
+	def __init__(self, name, genome, outdir, r1, r2=None, threads=4, time=False):
 		self.name = name
 		self.genome = genome
 		self.outdir = outdir
 		self.r1 = r1
 		self.r2 = r2
 		self.threads = threads
+
+		self.time = time
+		self.timelog = os.path.join(outdir, f"{name}.time.log") if time else None
+
 		self.index_dir = os.path.join(outdir, f"{self.name}_index")
 		self.ref = os.path.join(self.index_dir, "ref.fa")
 		os.makedirs(self.index_dir, exist_ok=True)
 		cp(self.genome, self.ref)
+
 		self.sam = None
 
 	def index(self):
-		pass
+		raise NotImplementedError
 
 	def align(self):
-		pass
+		raise NotImplementedError
 
 	def get_sam_path(self):
 		return self.sam
+	
+	def get_timelog_path(self):
+		return self.timelog
 
-	def cleanup(self):
-		only_keep_ext(self.outdir, "sam")
+	def cleanup(self, kept_ext):
+		only_keep_ext(self.outdir, kept_ext)
 
 
 class StarAligner(Aligner):
-	def __init__(self, genome, outdir, r1, r2=None, threads=4):
-		super().__init__("star", genome, outdir, r1, r2, threads)
+	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False):
+		super().__init__("star", genome, outdir, r1, r2, threads, time)
 
 	def index(self):
 		tmp_dir = os.path.join(self.index_dir, "tmp")
@@ -90,14 +98,17 @@ class StarAligner(Aligner):
 		else:
 			cmd += ["--readFilesIn", self.r1]
 
+		if self.time:
+			cmd = ["/usr/bin/time", "-v", "-o", self.timelog] + cmd
+
 		run(cmd)
 		self.sam = prefix + "Aligned.out.sam"
 		print("[STAR] Alignment complete")
 
 
 class Hisat2Aligner(Aligner):
-	def __init__(self, genome, outdir, r1, r2=None, threads=4):
-		super().__init__("hisat2", genome, outdir, r1, r2, threads)
+	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False):
+		super().__init__("hisat2", genome, outdir, r1, r2, threads, time)
 
 	def index(self):
 		cmd = [
@@ -111,6 +122,7 @@ class Hisat2Aligner(Aligner):
 
 	def align(self):
 		self.sam = os.path.join(self.outdir, "hisat2.sam")
+
 		if self.r2:
 			cmd = [
 				"hisat2",
@@ -128,13 +140,17 @@ class Hisat2Aligner(Aligner):
 				"-U", self.r1,
 				"-S", self.sam
 			]
+
+		if self.time:
+			cmd = ["/usr/bin/time", "-v", "-o", self.timelog] + cmd
+
 		run(cmd)
 		print("[hisat2] Alignment complete")
 
 
 class Bowtie2Aligner(Aligner):
-	def __init__(self, genome, outdir, r1, r2=None, threads=4):
-		super().__init__("bowtie2", genome, outdir, r1, r2, threads)
+	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False):
+		super().__init__("bowtie2", genome, outdir, r1, r2, threads, time)
 
 	def index(self):
 		cmd = [
@@ -148,6 +164,7 @@ class Bowtie2Aligner(Aligner):
 
 	def align(self):
 		self.sam = os.path.join(self.outdir, "bowtie2.sam")
+
 		if self.r2:
 			cmd = [
 				"bowtie2",
@@ -165,13 +182,17 @@ class Bowtie2Aligner(Aligner):
 				"-U", self.r1,
 				"-S", self.sam
 			]
+
+		if self.time:
+			cmd = ["/usr/bin/time", "-v", "-o", self.timelog] + cmd
+
 		run(cmd)
 		print("[bowtie2] Alignment complete")
 
 
 class BwaAligner(Aligner):
-	def __init__(self, genome, outdir, r1, r2=None, threads=4):
-		super().__init__("bwa", genome, outdir, r1, r2, threads)
+	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False):
+		super().__init__("bwa", genome, outdir, r1, r2, threads, time)
 
 	def index(self):
 		cmd = [
@@ -184,6 +205,7 @@ class BwaAligner(Aligner):
 
 	def align(self):
 		self.sam = os.path.join(self.outdir, "bwa.sam")
+
 		cmd = [
 			"bwa",
 			"mem",
@@ -192,16 +214,21 @@ class BwaAligner(Aligner):
 			self.ref,
 			self.r1
 		]
+
 		if self.r2:
 			cmd.append(self.r2)
 		cmd += [">", self.sam]
+
+		if self.time:
+			cmd = ["/usr/bin/time", "-v", "-o", self.timelog] + cmd
+
 		run(cmd)
 		print("[bwa] Alignment complete")
 
 
 class Minimap2Aligner(Aligner):
-	def __init__(self, genome, outdir, r1, r2=None, threads=4):
-		super().__init__("minimap2", genome, outdir, r1, r2, threads)
+	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False):
+		super().__init__("minimap2", genome, outdir, r1, r2, threads, time)
 		self.mmi = os.path.join(self.index_dir, "ref.mmi")
 
 	def index(self):
@@ -215,6 +242,7 @@ class Minimap2Aligner(Aligner):
 
 	def align(self):
 		self.sam = os.path.join(self.outdir, "minimap2.sam")
+
 		cmd = [
 			"minimap2",
 			"-t", str(self.threads),
@@ -222,8 +250,13 @@ class Minimap2Aligner(Aligner):
 			self.mmi,
 			self.r1
 		]
+
 		if self.r2:
 			cmd.append(self.r2)
 		cmd += [">", self.sam]
+
+		if self.time:
+			cmd = ["/usr/bin/time", "-v", "-o", self.timelog] + cmd
+
 		run(cmd)
 		print("[minimap2] Alignment complete")
