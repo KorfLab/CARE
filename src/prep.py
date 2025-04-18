@@ -2,26 +2,9 @@
 
 import argparse
 import os
-import sys
 import yaml
 
 import toolbox
-
-
-#############
-# functions #
-#############
-
-def move_shrunk_read(orig_path, aligner, target_dir):
-	"""Move and rename the shrunk fastq file into aligner dir"""
-	base = os.path.basename(orig_path)
-	root = os.path.splitext(base)[0]
-
-	shrunk_path = os.path.join(os.path.dirname(orig_path), f"{root}.shrunk.fastq")
-	new_fq = f"{root}.shrunk.{aligner}.fastq"
-	dst = os.path.join(target_dir, new_fq)
-
-	run_cmd(f"mv -f {shrunk_path} {dst}")
 
 
 ############
@@ -201,9 +184,18 @@ for aligner in args.aligner:
 
 	run_cmd(" ".join(cmd))
 
-	move_shrunk_read(args.r1, aligner, aligner_dir)
+	r1_base = os.path.basename(args.r1)
+	r1_root = os.path.splitext(r1_base)[0]
+	r1_shrunk = os.path.join(os.path.dirname(args.r1), f"{r1_root}.shrunk.fastq")
+	r1_renamed = os.path.join(aligner_dir, f"{r1_root}.shrunk.{aligner}.fastq")
+	toolbox.mv(r1_shrunk, r1_renamed)
 	if args.r2:
-		move_shrunk_read(args.r2, aligner, aligner_dir)
+		r2_base = os.path.basename(args.r2)
+		r2_root = os.path.splitext(r2_base)[0]
+		r2_shrunk = os.path.join(os.path.dirname(args.r2), f"{r2_root}.shrunk.fastq")
+		r2_renamed = os.path.join(aligner_dir, f"{r2_root}.shrunk.{aligner}.fastq")
+		toolbox.mv(r2_shrunk, r2_renamed)
+
 
 	r1_shrunk = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.fastq")
 	r1_mini = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.minifq.fastq")
