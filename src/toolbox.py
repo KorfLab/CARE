@@ -28,6 +28,8 @@ def run(cmd):
 
 def cp(src, dst):
 	"""Copy file or directory from src to dst"""
+	if not os.path.exists(src):
+		raise FileNotFoundError(f"[cp] ERROR: Source '{src}' does not exist")
 	if os.path.isdir(src):
 		if os.path.isdir(dst):
 			dst = os.path.join(dst, os.path.basename(src))
@@ -44,6 +46,22 @@ def cp(src, dst):
 		result = shutil.copy(src, dst)
 		print(f"[cp] Copied file: {src} -> {result}")
 		return result
+
+
+def mv(src, dst):
+	"""Move file or directory from src to dst"""
+	if not os.path.exists(src):
+		raise FileNotFoundError(f"[mv] ERROR: Source '{src}' does not exist")
+
+	if os.path.isdir(dst):
+		dst = os.path.join(dst, os.path.basename(src))
+
+	if os.path.exists(dst):
+		raise FileExistsError(f"[mv] ERROR: Target '{dst}' already exists")
+
+	result = shutil.move(src, dst)
+	print(f"[mv] Moved: {src} -> {result}")
+	return result
 
 
 def only_keep_ext(directory, ext):
