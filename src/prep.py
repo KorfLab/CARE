@@ -5,6 +5,16 @@ import os
 import yaml
 
 import toolbox
+import aligners
+
+
+ALIGNER_CLASS_MAP = {
+	"star": aligners.StarAligner,
+	"hisat2": aligners.Hisat2Aligner,
+	"bowtie2": aligners.Bowtie2Aligner,
+	"bwa": aligners.BwaAligner,
+	"minimap2": aligners.Minimap2Aligner
+}
 
 
 ############
@@ -27,6 +37,8 @@ parser.add_argument("-n", "----numReads", type=int, default=10000,
     help="Number of reads to keep in fastq (default=10000)")
 parser.add_argument("-t", "--thread", type=int, default=4,
 	help="Threads for aligners (default=4)")
+parser.add_argument("-o", "--output", required=True,
+	help="Directory to store all prep outputs, including genome subsets and alignments")
 
 
 args = parser.parse_args()
@@ -36,22 +48,27 @@ args = parser.parse_args()
 # main #
 ########
 
+outdir = args.output
+os.makedirs(args.output, exist_ok=True)
+
 gabs = os.path.abspath(args.genome)
-gdir = os.path.dirname(gabs)
+gdir = os.path.dirname(args.genome)
 gbsn = os.path.splitext(os.path.basename(gabs))[0]
 
 with open(args.yaml) as ymlin:
 	pcts = yaml.safe_load(ymlin)
 
+pct_genome_file_path = {}
+
 for p in pcts:
 	if not isinstance(p, float) or not (0 < p <= 1):
-		print(f"Invalid percentage in YAML: {p}, must be a float in (0, 1]")
+		print(f"[prep] Invalid percentage in YAML: {p}, must be a float in (0, 1]")
 		continue
 
 	if p == 1:
-		dst = os.path.join(gdir, "ref-100p.fa")
-		cmd = ["cp", "-f", gabs, dst]
-		run_cmd(' '.join(cmd))
+		dst = os.path.join(outdir, f"{gbsn}-100p.fa")
+		toolbox.cp(gabs, dst)
+		pct_genome_file_path[p] = dst
 		continue
 
 	cmd = [
@@ -60,37 +77,15 @@ for p in pcts:
 		"-p", f"{p:.2f}",
 		"-v"
 	]
-	run_cmd(' '.join(cmd))
+	toolbox.run(cmd)
 
 	src = os.path.join(gdir, f"{gbsn}.shrunk.fa")
-	dst = os.path.join(gdir, f"ref-{int(p * 100)}p.fa")
-	cmd = ["mv", "-f", src, dst]
-	run_cmd(' '.join(cmd))
+	dst = os.path.join(outdir, f"{gbsn}-{int(p*100)}p.fa")
+	toolbox.mv(src, dst)
+	pct_genome_file_path[p] = dst
 
 min_pct = min(pcts)
-min_pct_str = f"{int(min_pct * 100)}p"
-min_pct_genome_name = f"ref-{min_pct_str}"
-min_pct_genome_file = f"{min_pct_genome_name}.fa"
-
-
-########
-# move #
-########
-
-if args.aligner:
-	print(f"\n[INFO] Organizing genome subsets for aligners: {args.aligner}")
-
-	refs = [f for f in os.listdir(gdir) if f.startswith("ref-") and f.endswith("p.fa")]
-
-	for aligner in args.aligner:
-		aligner_dir = os.path.join(gdir, f"genomes-{aligner}")
-		os.makedirs(aligner_dir, exist_ok=True)
-
-		for ref in refs:
-			src = os.path.join(gdir, ref)
-			dst = os.path.join(aligner_dir, ref)
-			cmd = ["cp", "-f", src, dst]
-			run_cmd(' '.join(cmd))
+min_pct_genome_file = pct_genome_file_path[min_pct]
 
 
 #######################
@@ -98,81 +93,32 @@ if args.aligner:
 #######################
 
 for aligner in args.aligner:
-	aligner_dir = os.path.join(gdir, f"genomes-{aligner}")
-	genome_fa = os.path.join(aligner_dir, min_pct_genome_file)
+	aligner_dir = os.path.join(args.output, aligner)
+	os.makedirs(aligner_dir, exist_ok=True)
 
-	# indexing
-	if aligner == "star":
-		tmp_dir = os.path.join(aligner_dir, "tmp")
-		os.makedirs(tmp_dir, exist_ok=True)
+	print(f"\n[prep] Processing aligner: {aligner}")
 
-		msg = run_cmd_capture(f"STAR --runMode genomeGenerate --runThreadN {args.thread} --genomeDir {tmp_dir} --genomeFastaFiles {genome_fa} 2>&1")
-		recommended = None
-		for line in msg.splitlines():
-			if "genomeSAindexNbases" in line and "recommended" in line:
-				recommended = line.split()[-1]
-				break
+	aln = ALIGNER_CLASS_MAP[aligner](
+		genome=min_pct_genome_file,
+		outdir=aligner_dir,
+		r1=args.r1,
+		r2=args.r2,
+		threads=args.thread,
+		time=False
+	)
 
-		if recommended is not None:
-			print(f"[STAR] Using recommended genomeSAindexNbases = {recommended}")
-			run_cmd(f"rm -rf {tmp_dir}")
-			run_cmd(f"STAR --runMode genomeGenerate --runThreadN {args.thread} --genomeDir {aligner_dir} --genomeFastaFiles {genome_fa} --genomeSAindexNbases {recommended}")
-		else:
-			print("[STAR] No recommendation found, using default genomeSAindexNbases")
-			run_cmd(f"mv {tmp_dir}/* {aligner_dir}")
-			run_cmd(f"rm -rf {tmp_dir}")
-	elif aligner == "hisat2":
-		run_cmd(f"hisat2-build -p {args.thread} {genome_fa} {genome_fa}")
-	elif aligner == "bowtie2":
-		run_cmd(f"bowtie2-build --threads {args.thread} {genome_fa} {genome_fa}")
-	elif aligner == "bwa":
-		run_cmd(f"bwa index {genome_fa}")
-	elif aligner == "minimap2":
-		run_cmd(f"minimap2 -d {os.path.join(aligner_dir, 'ref.mmi')} {genome_fa}")
+	aln.index()
+	aln.align()
+	sam_path = aln.get_sam_path()
 
-	# aligning
-	sam_out = os.path.join(aligner_dir, f"subset-{min_pct_genome_name}.sam")
-	if aligner == "star":
-		if args.r2:
-			cmd = f"STAR --runMode alignReads --runThreadN {args.thread} --genomeDir {aligner_dir} --readFilesIn {args.r1} {args.r2} --outFileNamePrefix {aligner_dir}/subset- --outSAMtype SAM"
-		else:
-			cmd = f"STAR --runMode alignReads --runThreadN {args.thread} --genomeDir {aligner_dir} --readFilesIn {args.r1} --outFileNamePrefix {aligner_dir}/subset- --outSAMtype SAM"
-	elif aligner == "hisat2":
-		if args.r2:
-			cmd = f"hisat2 -p {args.thread} -x {genome_fa} -1 {args.r1} -2 {args.r2} -S {sam_out}"
-		else:
-			cmd = f"hisat2 -p {args.thread} -x {genome_fa} -U {args.r1} -S {sam_out}"
-	elif aligner == "bowtie2":
-		if args.r2:
-			cmd = f"bowtie2 -p {args.thread} -x {genome_fa} -1 {args.r1} -2 {args.r2} -S {sam_out}"
-		else:
-			cmd = f"bowtie2 -p {args.thread} -x {genome_fa} -U {args.r1} -S {sam_out}"
-	elif aligner == "bwa":
-		if args.r2:
-			cmd = f"bwa mem -t {args.thread} {genome_fa} {args.r1} {args.r2} > {sam_out}"
-		else:
-			cmd = f"bwa mem -t {args.thread} {genome_fa} {args.r1} > {sam_out}"
-	elif aligner == "minimap2":
-		mmi = os.path.join(aligner_dir, "ref.mmi")
-		if args.r2:
-			cmd = f"minimap2 -t {args.thread} -ax sr {mmi} {args.r1} {args.r2} > {sam_out}"
-		else:
-			cmd = f"minimap2 -t {args.thread} -ax sr {mmi} {args.r1} > {sam_out}"
-	else:
-		print(f"[skip] aligner not supported: {aligner}")
-		continue
-
-	run_cmd(cmd)
+	shrunk_path = os.path.join(aligner_dir, f"{aligner}.shrunk.fastq")
 
 	print(f"\n[xfq] Filtering reads for {aligner} referencing SAM")
 
-	if aligner == "star":
-		sam_out = os.path.join(aligner_dir, "subset-Aligned.out.sam")
-
 	cmd = [
 		"python3", "subset.py", "xfq",
-		"-g", genome_fa,
-		"-s", sam_out,
+		"-g", aln.ref,
+		"-s", sam_path,
 		"-p", "1",
 		"--r1", args.r1
 	]
@@ -181,21 +127,27 @@ for aligner in args.aligner:
 		cmd += ["--r2", args.r2]
 
 	cmd += ["-v"]
-
-	run_cmd(" ".join(cmd))
+	toolbox.run(cmd)
 
 	r1_base = os.path.basename(args.r1)
 	r1_root = os.path.splitext(r1_base)[0]
 	r1_shrunk = os.path.join(os.path.dirname(args.r1), f"{r1_root}.shrunk.fastq")
-	r1_renamed = os.path.join(aligner_dir, f"{r1_root}.shrunk.{aligner}.fastq")
-	toolbox.mv(r1_shrunk, r1_renamed)
+	r1_dst = os.path.join(aligner_dir, f"{r1_root}.shrunk.{aligner}.fastq")
+	toolbox.mv(r1_shrunk, r1_dst)
+
 	if args.r2:
 		r2_base = os.path.basename(args.r2)
 		r2_root = os.path.splitext(r2_base)[0]
 		r2_shrunk = os.path.join(os.path.dirname(args.r2), f"{r2_root}.shrunk.fastq")
-		r2_renamed = os.path.join(aligner_dir, f"{r2_root}.shrunk.{aligner}.fastq")
-		toolbox.mv(r2_shrunk, r2_renamed)
+		r2_dst = os.path.join(aligner_dir, f"{r2_root}.shrunk.{aligner}.fastq")
+		toolbox.mv(r2_shrunk, r2_dst)
 
+
+# TODO add shared reads filtering
+
+
+# Left to refactor
+for aligner in args.aligner:
 
 	r1_shrunk = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.fastq")
 	r1_mini = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.minifq.fastq")
