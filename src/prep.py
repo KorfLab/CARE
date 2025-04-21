@@ -237,7 +237,7 @@ toolbox.run(cmd)
 if args.cleanup:
 	print("\n[prep] Cleaning up...")
 	toolbox.only_keep_ext(args.output, ext=[".fa", ".minifq.fastq"])
-	print("[prep] Contents retained after cleanup:")
+	print("[prep] Files retained after cleanup:")
 	for item in sorted(os.listdir(args.output)):
 		print("  -", item)
 
