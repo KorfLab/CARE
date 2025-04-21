@@ -75,6 +75,8 @@ parser.add_argument("--r1", required=True,
 	help="Path to input FASTQ file for reads 1")
 parser.add_argument("--r2", 
 	help="Path to input FASTQ file for reads 2 for paired-end")
+parser.add_argument("-o", "--output", default=".",
+	help="Directory to save output FASTQ files (default: current directory)")
 parser.add_argument("-n", "--numReads", type=int, required=True,
 	help="Number of reads to keep in the output")
 parser.add_argument("-s", "--seed", type=int, default=1,
@@ -86,6 +88,9 @@ parser.add_argument("--sort", action="store_true",
 parser.add_argument("-v", "--verbose", action="store_true",
 	help="More verbose output")
 args = parser.parse_args()
+
+outdir = args.output
+os.makedirs(outdir, exist_ok=True)
 
 
 ######
@@ -100,7 +105,7 @@ if args.r2:
 
 if args.verbose:
 	print("[minifq] Starting minifq")
-	print("Input file(s):")
+	print("[minifq] Input file(s):")
 	print(f"\t{args.r1} - {toolbox.human_readable_size(r1_size)}")
 	if args.r2:
 		print(f"\t{args.r2} - {toolbox.human_readable_size(r2_size)}")
@@ -144,8 +149,8 @@ if args.r2:
 
 	base1 = remove_extensions(os.path.basename(args.r1), extensions_to_remove)
 	base2 = remove_extensions(os.path.basename(args.r2), extensions_to_remove)
-	out1 = base1 + ".minifq.fastq"
-	out2 = base2 + ".minifq.fastq"
+	out1 = os.path.join(outdir, base1 + ".minifq.fastq")
+	out2 = os.path.join(outdir, base2 + ".minifq.fastq")
 
 	if args.gzip:
 		out1 += ".gz"
@@ -180,7 +185,7 @@ else:
 		reservoir = sorted(reservoir, key=lambda read: int(read[0].strip().split()[0].split('.')[1]))
 	
 	base1 = remove_extensions(os.path.basename(args.r1), extensions_to_remove)
-	out_file = base1 + ".minifq.fastq"
+	out_file = os.path.join(outdir, base1 + ".minifq.fastq")
 
 	if args.gzip:
 		out_file += ".gz"
