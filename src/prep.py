@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import sys
 import yaml
 
 import toolbox
@@ -17,31 +18,64 @@ ALIGNER_CLASS_MAP = {
 }
 
 
+#########
+# funcs #
+#########
+
+def get_read_names(fq_path):
+	"""Get read names from a fastq file"""
+	names = set()
+	with toolbox.smart_open_read(fq_path) as f:
+		for i, line in enumerate(f):
+			if i % 4 == 0:
+				name = line.strip().split()[0][1:]
+				names.add(name)
+	return names
+
+
+def extract_reads(fq_path, shared_names, output_path):
+	"""Extract reads by read names in a set to fastq"""
+	with toolbox.smart_open_read(fq_path) as fin, open(output_path, "w") as fout:
+		while True:
+			try:
+				block = [next(fin) for _ in range(4)]
+			except StopIteration:
+				break
+			name = block[0].strip().split()[0][1:]
+			if name in shared_names:
+				fout.writelines(block)
+
+
 ############
 # argparse #
 ############
 
 parser = argparse.ArgumentParser(
 	description="Batch subset genome using percentages from YAML")
-parser.add_argument("-g", "--genome", required=True, 
+parser.add_argument("-g", "--genome", required=True,
 	help="Genome FASTA file")
 parser.add_argument("-y", "--yaml", required=True,
 	help="YAML file of a list of percentages")
 parser.add_argument("-a", "--aligner", nargs='+',
 	help="Aligners to prepare genome folders for")
-parser.add_argument("--r1", required=True, 
+parser.add_argument("--r1", required=True,
 	help="FASTQ file R1")
 parser.add_argument("--r2",
 	help="FASTQ file R2 (if paired-end)")
-parser.add_argument("-n", "----numReads", type=int, default=10000,
-    help="Number of reads to keep in fastq (default=10000)")
+parser.add_argument("-n", "--numReads", type=int, default=10000,
+	help="Number of reads to keep in fastq (default=10000)")
 parser.add_argument("-t", "--thread", type=int, default=4,
 	help="Threads for aligners (default=4)")
 parser.add_argument("-o", "--output", required=True,
 	help="Directory to store all prep outputs, including genome subsets and alignments")
-
-
+parser.add_argument("-c", "--cleanup", action="store_true",
+	help="Remove all aligner directories and intermediary files")
 args = parser.parse_args()
+
+for aligner in args.aligner:
+	if aligner not in ALIGNER_CLASS_MAP:
+		print(f"[prep] ERROR: Unknown aligner '{aligner}'")
+		sys.exit(1)
 
 
 ########
@@ -88,9 +122,12 @@ min_pct = min(pcts)
 min_pct_genome_file = pct_genome_file_path[min_pct]
 
 
-#######################
-# index align and xfq #
-#######################
+###################
+# index align xfq #
+###################
+
+shrunk_fastqs = {}
+read_sets = {}
 
 for aligner in args.aligner:
 	aligner_dir = os.path.join(args.output, aligner)
@@ -135,41 +172,74 @@ for aligner in args.aligner:
 	r1_dst = os.path.join(aligner_dir, f"{r1_root}.shrunk.{aligner}.fastq")
 	toolbox.mv(r1_shrunk, r1_dst)
 
+	shrunk_fastqs[aligner] = {}
+	shrunk_fastqs[aligner]["r1"] = r1_dst
+	read_sets[aligner] = get_read_names(r1_dst)
+
 	if args.r2:
 		r2_base = os.path.basename(args.r2)
 		r2_root = os.path.splitext(r2_base)[0]
 		r2_shrunk = os.path.join(os.path.dirname(args.r2), f"{r2_root}.shrunk.fastq")
 		r2_dst = os.path.join(aligner_dir, f"{r2_root}.shrunk.{aligner}.fastq")
 		toolbox.mv(r2_shrunk, r2_dst)
+		shrunk_fastqs[aligner]["r2"] = r2_dst
 
 
-# TODO add shared reads filtering
+#############
+# intersect #
+#############
+
+print("\n[prep] Intersecting reads across all aligners")
+
+shared_reads = set.intersection(*read_sets.values())
+if not shared_reads:
+	print("[prep] ERROR: No shared reads found across aligners")
+	sys.exit(1)
+print(f"[prep] Found {len(shared_reads)} shared reads across all aligners")
+
+smallest_aligner = min(
+	shrunk_fastqs,
+	key=lambda a: os.path.getsize(shrunk_fastqs[a]["r1"])
+)
+
+r1_for_extract = shrunk_fastqs[smallest_aligner]["r1"]
+shared_r1 = os.path.join(outdir, "shared_1.fastq")
+extract_reads(r1_for_extract, shared_reads, shared_r1)
+
+print(f"[prep] Shared r1 written to {shared_r1}")
+
+if args.r2:
+	r2_for_extract = shrunk_fastqs[smallest_aligner]["r2"]
+	shared_r2 = os.path.join(outdir, "shared_2.fastq")
+	extract_reads(r2_for_extract, shared_reads, shared_r2)
+	print(f"[prep] Shared r2 written to {shared_r2}")
 
 
-# Left to refactor
-for aligner in args.aligner:
+##########
+# minifq #
+##########
 
-	r1_shrunk = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.fastq")
-	r1_mini = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r1))[0]}.shrunk.{aligner}.minifq.fastq")
+cmd = [
+	"python3", "minifq.py",
+	"--r1", shared_r1,
+	"-n", str(args.numReads),
+	"-s", "1",
+	"-o", outdir,
+	"--sort",
+	"-v"
+]
 
-	if args.r2:
-		r2_shrunk = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r2))[0]}.shrunk.{aligner}.fastq")
-		r2_mini = os.path.join(aligner_dir, f"{os.path.splitext(os.path.basename(args.r2))[0]}.shrunk.{aligner}.minifq.fastq")
+if args.r2:
+	cmd += ["--r2", shared_r2]
 
-		cmd = f"python3 minifq.py --r1 {r1_shrunk} --r2 {r2_shrunk} -n {args.numReads} -s 1 --sort -v"
-	else:
-		cmd = f"python3 minifq.py --r1 {r1_shrunk} -n {args.numReads} -s 1 --sort -v"
+toolbox.run(cmd)
 
-	print(f"\n[minifq] Sampling {args.numReads} reads for {aligner}")
-	run_cmd(cmd)
+if args.cleanup:
+	print("\n[prep] Cleaning up...")
+	toolbox.only_keep_ext(args.output, ext=[".fa", ".minifq.fastq"])
+	print("[prep] Contents retained after cleanup:")
+	for item in sorted(os.listdir(args.output)):
+		print("  -", item)
 
-	if not os.path.exists(r1_mini):
-		moved_r1 = os.path.basename(r1_mini)
-		run_cmd(f"mv -f {moved_r1} {r1_mini}")
-
-	if args.r2:
-		if not os.path.exists(r2_mini):
-			moved_r2 = os.path.basename(r2_mini)
-			run_cmd(f"mv -f {moved_r2} {r2_mini}")
-
-print(f"\n[INFO] Obtained {int(min_pct * 100)}% reads for aligners: {args.aligner}")
+print(f"\n[prep] var-gn preparation complete")
+print(f"[prep] All outputs in: {args.output}")
