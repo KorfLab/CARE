@@ -183,9 +183,6 @@ if args.command is None:
 	print("\n[subset] ERROR: no subcommand specified, choose one of: {xfa, xfq}")
 	sys.exit(1)
 
-if args.scale > 1:
-	sys.exit("[subset] ERROR: scale must be <= 1")
-
 
 ########
 # main #
@@ -216,6 +213,9 @@ if args.command == "xfa":
 	print(f"\n[subset] Genome subset to {args.scale * 100}%")
 
 elif args.command == "xfq":
+	if args.scale > 1:
+		sys.exit("[subset] ERROR: scale must be <= 1")
+
 	is_paired = args.r2 is not None
 	in_genome = args.genome
 
