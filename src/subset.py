@@ -115,7 +115,8 @@ def validate_reads_from_sam(is_paired, sam, new_genome_lengths):
 	return valid_reads
 
 
-def trim_and_write(fq_in, fq_out):
+def trim_and_write(rl, fq_in, fq_out):
+	"""Trim read length of a read and write to new fastq"""
 	with toolbox.smart_open_read(fq_in) as fin, toolbox.smart_open_write(fq_out, args.gzip) as fout:
 		for read in toolbox.fastq_reader(fin):
 			seq  = read[1].strip()
@@ -125,8 +126,11 @@ def trim_and_write(fq_in, fq_out):
 				print(f"[subset] ERROR: Read with length {len(seq)} shorter than {rl}")
 				sys.exit(1)
 
+			read[0] = re.sub(r'length=\d+', f'length={rl}', read[0])
 			read[1] =  seq[:rl] + "\n"
+			read[2] = re.sub(r'length=\d+', f'length={rl}', read[2])
 			read[3] = qual[:rl] + "\n"
+
 			fout.write("".join(read))
 
 
@@ -339,7 +343,7 @@ elif args.command == "xrl":
 	if args.gzip:
 		r1_out += ".gz"
 
-	trim_and_write(args.r1, r1_out)
+	trim_and_write(rl, args.r1, r1_out)
 
 	if args.verbose:
 		print(f"[subset] R1 trimmed to {rl} read length at: {r1_out}")
@@ -351,7 +355,7 @@ elif args.command == "xrl":
 		if args.gzip:
 			r2_out += ".gz"
 
-		trim_and_write(args.r2, r2_out)
+		trim_and_write(rl, args.r2, r2_out)
 
 		if args.verbose:
 			print(f"[subset] R2 trimmed to {rl} read length at: {r2_out}")
