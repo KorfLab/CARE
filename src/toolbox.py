@@ -124,19 +124,11 @@ def fastq_reader(fp):
 			break
 
 
-def count_lines(fp):
-	"""Count lines in fp"""
-	count = 0
-	for _ in fp:
-		count += 1
-	return count
-
-
 def sc_fastq(file1, file2=None):
 	"""Sanity check single or paired FASTQ"""
 
 	with smart_open_read(file1) as f1:
-		lines1 = count_lines(f1)
+		lines1 = sum(1 for _ in f1)
 
 	if lines1 % 4 != 0:
 		print(f"[sc-fastq] ERROR: {file1} has {lines1} lines, which is not a multiple of 4")
@@ -147,7 +139,7 @@ def sc_fastq(file1, file2=None):
 
 	if file2:
 		with smart_open_read(file2) as f2:
-			lines2 = count_lines(f2)
+			lines2 = sum(1 for _ in f2)
 
 		if lines2 % 4 != 0:
 			print(f"[sc-fastq] ERROR: {file2} has {lines2} lines, which is not a multiple of 4")
