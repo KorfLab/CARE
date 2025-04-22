@@ -55,7 +55,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument("-g", "--genome", required=True,
 	help="Genome FASTA file")
 parser.add_argument("-y", "--yaml", required=True,
-	help="YAML file of a list of percentages")
+	help="YAML file of various prep specifications")
 parser.add_argument("-a", "--aligner", nargs='+',
 	help="Aligners to prepare genome folders for")
 parser.add_argument("--r1", required=True,
@@ -90,7 +90,9 @@ gdir = os.path.dirname(args.genome)
 gbsn = os.path.splitext(os.path.basename(gabs))[0]
 
 with open(args.yaml) as ymlin:
-	pcts = yaml.safe_load(ymlin)
+	spec = yaml.safe_load(ymlin)
+
+pcts = spec.get("genome_pcts", [])
 
 pct_genome_file_path = {}
 
@@ -233,6 +235,11 @@ if args.r2:
 	cmd += ["--r2", shared_r2]
 
 toolbox.run(cmd)
+
+
+###########
+# cleanup #
+###########
 
 if args.cleanup:
 	print("\n[prep] Cleaning up...")
