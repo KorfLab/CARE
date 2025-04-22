@@ -115,6 +115,21 @@ def validate_reads_from_sam(is_paired, sam, new_genome_lengths):
 	return valid_reads
 
 
+def trim_and_write(fq_in, fq_out):
+	with toolbox.smart_open_read(fq_in) as fin, toolbox.smart_open_write(fq_out, args.gzip) as fout:
+		for read in toolbox.fastq_reader(fin):
+			seq  = read[1].strip()
+			qual = read[3].strip()
+
+			if len(seq) < rl or len(qual) < rl:
+				print(f"[subset] ERROR: Read with length {len(seq)} shorter than {rl}")
+				sys.exit(1)
+
+			read[1] =  seq[:rl] + "\n"
+			read[3] = qual[:rl] + "\n"
+			fout.write("".join(read))
+
+
 ############
 # argparse #
 ############
@@ -145,6 +160,19 @@ xfq.add_argument("--r2",
 	help="FASTQ file for paired-end read 2")
 xfq.add_argument("-z", "--gzip", action="store_true",
 	help="Gzip output FASTQ")
+xfq.add_argument("-v", "--verbose", action="store_true",
+	help="More verbose output")
+
+xrl = subparsers.add_parser("xrl",
+	help="Trim FASTQ reads to specified read length")
+xrl.add_argument("--r1", required=True,
+	help="FASTQ file for reads")
+xrl.add_argument("--r2",
+	help="FASTQ file for paired-end read 2")
+xrl.add_argument("-k", "--rl", type=int, required=True,
+    help="Target read length")
+xrl.add_argument("-z", "--gzip", action="store_true",
+    help="Output gzipped FASTQ")
 xfq.add_argument("-v", "--verbose", action="store_true",
 	help="More verbose output")
 
@@ -230,7 +258,7 @@ elif args.command == "xfq":
 		out_r1 = os.path.splitext(args.r1)[0] + ".shrunk.fastq"
 		if args.gzip:
 			out_r1 += ".gz"
-	
+
 	total_reads = 0
 	kept_reads = 0
 
@@ -301,3 +329,29 @@ elif args.command == "xfq":
 			print("[subset] WARNING: unable to determine FASTQ file sizes")
 
 	print(f"\n[subset] Genome and FASTQ subset to {args.scale * 100}%")
+
+elif args.command == "xrl":
+	rl = args.rl
+
+	base_r1 = os.path.splitext(os.path.basename(args.r1))[0]
+	r1_out = os.path.join(os.path.dirname(args.r1), f"{base_r1}.{rl}rl.fastq")
+
+	if args.gzip:
+		r1_out += ".gz"
+
+	trim_and_write(args.r1, r1_out)
+
+	if args.verbose:
+		print(f"[subset] R1 trimmed to {rl} read length at: {r1_out}")
+
+	if args.r2:
+		base_r2 = os.path.splitext(os.path.basename(args.r2))[0]
+		r2_out = os.path.join(os.path.dirname(args.r2), f"{base_r2}.{rl}rl.fastq")
+
+		if args.gzip:
+			r2_out += ".gz"
+
+		trim_and_write(args.r2, r2_out)
+
+		if args.verbose:
+			print(f"[subset] R2 trimmed to {rl} read length at: {r2_out}")
