@@ -78,6 +78,27 @@ for aligner in args.aligner:
 		sys.exit(1)
 
 
+#########
+# check #
+#########
+
+if not os.path.isfile(args.genome):
+	print(f"[prep] ERROR: Genome file not found: {args.genome}")
+	sys.exit(1)
+
+if not os.path.isfile(args.yaml):
+	print(f"[prep] ERROR: YAML file not found: {args.yaml}")
+	sys.exit(1)
+
+if not os.path.isfile(args.r1):
+	print(f"[prep] ERROR: FASTQ R1 file not found: {args.r1}")
+	sys.exit(1)
+
+if args.r2 and not os.path.isfile(args.r2):
+	print(f"[prep] ERROR: FASTQ R2 file not found: {args.r2}")
+	sys.exit(1)
+
+
 ##########
 # var-gn #
 ##########
