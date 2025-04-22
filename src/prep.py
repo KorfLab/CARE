@@ -78,9 +78,9 @@ for aligner in args.aligner:
 		sys.exit(1)
 
 
-########
-# main #
-########
+##########
+# var-gn #
+##########
 
 outdir = args.output
 os.makedirs(args.output, exist_ok=True)
@@ -99,7 +99,7 @@ pct_genome_file_path = {}
 for p in pcts:
 	if not isinstance(p, float) or not (0 < p <= 1):
 		print(f"[prep] Invalid percentage in YAML: {p}, must be a float in (0, 1]")
-		continue
+		sys.exit(1)
 
 	if p == 1:
 		dst = os.path.join(outdir, f"{gbsn}-100p.fa")
@@ -250,3 +250,34 @@ if args.cleanup:
 
 print(f"\n[prep] var-gn preparation complete")
 print(f"[prep] All outputs in: {args.output}")
+
+
+##########
+# var-rl #
+##########
+
+print("\n[prep] Generating read-length variants for var-rl")
+
+read_lengths = spec.get("read_lengths", [])
+if not read_lengths:
+	print("[prep] WARNING: No read lengths found in YAML. Skipping var-rl prep")
+else:
+	for rl in read_lengths:
+		if not isinstance(rl, int) or not (0 < rl <= 151):
+			print(f"[prep] Invalid read length in YAML: {rl}, must be an int in (0, 151]")
+			sys.exit(1)
+
+		cmd = [
+			"python3", "subset.py", "xrl",
+			"--r1", os.path.join(outdir, "shared_1.minifq.fastq"),
+			"-k", str(rl),
+			"-v"
+		]
+
+		if args.r2:
+			cmd += ["--r2", os.path.join(outdir, "shared_2.minifq.fastq")]
+
+		cmd += ["-v"]
+		toolbox.run(cmd)
+
+	print("[prep] var-rl preparation complete")
