@@ -31,7 +31,7 @@ class Aligner:
 
 	def get_sam_path(self):
 		return self.sam
-	
+
 	def get_timelog_path(self):
 		return self.timelog
 
