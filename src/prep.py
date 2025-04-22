@@ -290,15 +290,14 @@ else:
 
 		cmd = [
 			"python3", "subset.py", "xrl",
-			"--r1", os.path.join(outdir, "shared_1.minifq.fastq"),
 			"-k", str(rl),
-			"-v"
+			"--r1", os.path.join(outdir, "shared_1.minifq.fastq")
 		]
 
 		if args.r2:
 			cmd += ["--r2", os.path.join(outdir, "shared_2.minifq.fastq")]
 
-		cmd += ["-v"]
+		cmd.append("-v")
 		toolbox.run(cmd)
 
 	print("[prep] var-rl preparation complete")
