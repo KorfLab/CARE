@@ -170,10 +170,10 @@ xrl.add_argument("--r1", required=True,
 xrl.add_argument("--r2",
 	help="FASTQ file for paired-end read 2")
 xrl.add_argument("-k", "--rl", type=int, required=True,
-    help="Target read length")
+	help="Target read length")
 xrl.add_argument("-z", "--gzip", action="store_true",
-    help="Output gzipped FASTQ")
-xfq.add_argument("-v", "--verbose", action="store_true",
+	help="Output gzipped FASTQ")
+xrl.add_argument("-v", "--verbose", action="store_true",
 	help="More verbose output")
 
 args = parser.parse_args()
