@@ -139,7 +139,7 @@ def trim_and_write(rl, fq_in, fq_out):
 ############
 
 parser = argparse.ArgumentParser(description="Shrink genome or filter reads with alignment info")
-subparsers = parser.add_subparsers(dest="command")
+subparsers = parser.add_subparsers(dest="command", help="subset modes: xfa, xfq, xrl")
 
 xfa = subparsers.add_parser("xfa",
 	help="Shrink a genome FASTA file by scale")
@@ -181,11 +181,6 @@ xrl.add_argument("-v", "--verbose", action="store_true",
 	help="More verbose output")
 
 args = parser.parse_args()
-
-if args.command is None:
-	parser.print_help()
-	print("\n[subset] ERROR: no subcommand specified, choose one of: {xfa, xfq}")
-	sys.exit(1)
 
 
 ########
@@ -359,3 +354,7 @@ elif args.command == "xrl":
 
 		if args.verbose:
 			print(f"[subset] R2 trimmed to {rl} read length at: {r2_out}")
+
+else:
+	print("\n[subset] ERROR: subcommand not recognized, choose one of: {xfa, xfq, xrl}")
+	parser.print_help()
