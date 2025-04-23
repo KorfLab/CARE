@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import shutil
 import sys
 import yaml
 
@@ -44,6 +45,26 @@ def extract_reads(fq_path, shared_names, output_path):
 			name = block[0].strip().split()[0][1:]
 			if name in shared_names:
 				fout.writelines(block)
+
+
+def cleanup(dir):
+	for item in os.listdir(dir):
+		if (
+			item.endswith("p.fa") or
+			item.endswith("p.fastq") or
+			item.endswith("rl.fastq") or
+			item.endswith("Xcov.fastq")
+		):
+			continue
+
+		path = os.path.join(dir, item)
+
+		if os.path.isdir(path):
+			shutil.rmtree(path)
+			print(f"[cleanup] Removed directory: {path}")
+		else:
+			os.remove(path)
+			print(f"[cleanup] Removed file: {path}")
 
 
 ############
@@ -103,6 +124,8 @@ if args.r2 and not os.path.isfile(args.r2):
 # var-gn #
 ##########
 
+print("[prep] Generating genome variants for var-gn")
+
 outdir = args.output
 os.makedirs(args.output, exist_ok=True)
 
@@ -114,12 +137,15 @@ with open(args.yaml) as ymlin:
 	spec = yaml.safe_load(ymlin)
 
 pcts = spec.get("genome_pcts", [])
+if not pcts:
+	print("[prep] ERROR: No percentages for genome sizes found in YAML, var-gn prep failed")
+	sys.exit(1)
 
 pct_genome_file_path = {}
 
 for p in pcts:
 	if not isinstance(p, float) or not (0 < p <= 1):
-		print(f"[prep] Invalid percentage in YAML: {p}, must be a float in (0, 1]")
+		print(f"[prep] ERROR: Invalid percentage in YAML: {p}, must be a float in (0, 1]")
 		sys.exit(1)
 
 	if p == 1:
@@ -257,20 +283,14 @@ if args.r2:
 
 toolbox.run(cmd)
 
+min_pct_r1 = os.path.join(outdir, f"shared_1.{min_pct}p.fastq")
+toolbox.mv(shared_r1, min_pct_r1)
 
-###########
-# cleanup #
-###########
+if args.r2:
+	min_pct_r2 = os.path.join(outdir, f"shared_2.{min_pct}p.fastq")
+	toolbox.mv(shared_r2, min_pct_r2)
 
-if args.cleanup:
-	print("\n[prep] Cleaning up...")
-	toolbox.only_keep_ext(args.output, ext=[".fa", ".minifq.fastq"])
-	print("[prep] Files retained after cleanup:")
-	for item in sorted(os.listdir(args.output)):
-		print("  -", item)
-
-print(f"\n[prep] var-gn preparation complete")
-print(f"[prep] All outputs in: {args.output}")
+print("[prep] var-gn preparation complete")
 
 
 ##########
@@ -281,23 +301,88 @@ print("\n[prep] Generating read-length variants for var-rl")
 
 read_lengths = spec.get("read_lengths", [])
 if not read_lengths:
-	print("[prep] WARNING: No read lengths found in YAML. Skipping var-rl prep")
-else:
-	for rl in read_lengths:
-		if not isinstance(rl, int) or not (0 < rl <= 151):
-			print(f"[prep] Invalid read length in YAML: {rl}, must be an int in (0, 151]")
-			sys.exit(1)
+	print("[prep] ERROR: No read lengths found in YAML, var-rl prep failed")
+	sys.exit(1)
 
-		cmd = [
-			"python3", "subset.py", "xrl",
-			"-k", str(rl),
-			"--r1", os.path.join(outdir, "shared_1.minifq.fastq")
-		]
+for rl in read_lengths:
+	if not isinstance(rl, int) or not (0 < rl <= 151):
+		print(f"[prep] ERROR: Invalid read length in YAML: {rl}, must be an int in (0, 151]")
+		sys.exit(1)
 
-		if args.r2:
-			cmd += ["--r2", os.path.join(outdir, "shared_2.minifq.fastq")]
+	cmd = [
+		"python3", "subset.py", "xrl",
+		"-k", str(rl),
+		"--r1", min_pct_r1
+	]
 
-		cmd.append("-v")
-		toolbox.run(cmd)
+	if args.r2:
+		cmd += ["--r2", min_pct_r2]
 
-	print("[prep] var-rl preparation complete")
+	cmd.append("-v")
+	toolbox.run(cmd)
+
+print("[prep] var-rl preparation complete")
+
+
+###########
+# var-cov #
+###########
+
+print("\n[prep] Generating read subsets for var-cov")
+
+coverages = spec.get("coverages", [])
+if not coverages:
+	print("[prep] ERROR: No coverages found in YAML, var-cov prep failed")
+	sys.exit(1)
+
+genome_len = toolbox.get_genome_length(min_pct_genome_file)
+read_len   = toolbox.get_read_length(shared_r1)
+
+for cov in coverages:
+	if not isinstance(cov, int) or cov <= 0:
+		print(f"[prep] Error: Invalid coverage in YAML: {cov}, must be a positive int")
+		sys.exit(1)
+
+	num_reads = (cov * genome_len) // read_len
+	print(f"[prep] Targeting {cov}X coverage achieved by {num_reads} reads")
+
+	cmd = [
+		"python3", "minifq.py",
+		"--r1", shared_r1,
+		"-n", str(num_reads),
+		"-s", "1",
+		"-o", outdir,
+		"--sort",
+		"-v"
+	]
+
+	if args.r2:
+		cmd += ["--r2", shared_r2]
+
+	toolbox.run(cmd)
+
+	src1 = os.path.join(outdir, "shared_1.minifq.fastq")
+	dst1 = os.path.join(outdir, f"shared_1.{cov}Xcov.fastq")
+	toolbox.mv(src1, dst1)
+
+	if args.r2:
+		src2 = os.path.join(outdir, "shared_2.minifq.fastq")
+		dst2 = os.path.join(outdir, f"shared_2.{cov}Xcov.fastq")
+		toolbox.mv(src2, dst2)
+
+print("[prep] var-cov preparation complete")
+
+
+###########
+# cleanup #
+###########
+
+if args.cleanup:
+	print("\n[prep] Cleaning up...")
+	cleanup(outdir)
+	print("[prep] Files retained after cleanup:")
+	for item in sorted(os.listdir(outdir)):
+		print("\t-", item)
+
+print(f"\n[prep] CARE prep complete")
+print(f"[prep] All outputs in: {outdir}")
