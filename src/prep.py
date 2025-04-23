@@ -283,10 +283,12 @@ if args.r2:
 
 toolbox.run(cmd)
 
+shared_r1_minifq = os.path.join(outdir, "shared_1.minifq.fastq")
 min_pct_r1 = os.path.join(outdir, f"shared_1.{min_pct}p.fastq")
-toolbox.mv(shared_r1, min_pct_r1)
+toolbox.mv(shared_r1_minifq, min_pct_r1)
 
 if args.r2:
+	shared_r2_minifq = os.path.join(outdir, "shared_2.minifq.fastq")
 	min_pct_r2 = os.path.join(outdir, f"shared_2.{min_pct}p.fastq")
 	toolbox.mv(shared_r2, min_pct_r2)
 
@@ -336,7 +338,7 @@ if not coverages:
 	sys.exit(1)
 
 genome_len = toolbox.get_genome_length(min_pct_genome_file)
-read_len   = toolbox.get_read_length(min_pct_r1)
+read_len   = toolbox.get_read_length(shared_r1)
 
 for cov in coverages:
 	if not isinstance(cov, int) or cov <= 0:
@@ -348,7 +350,7 @@ for cov in coverages:
 
 	cmd = [
 		"python3", "minifq.py",
-		"--r1", min_pct_r1,
+		"--r1", shared_r1,
 		"-n", str(num_reads),
 		"-s", "1",
 		"-o", outdir,
@@ -357,18 +359,16 @@ for cov in coverages:
 	]
 
 	if args.r2:
-		cmd += ["--r2", min_pct_r2]
+		cmd += ["--r2", shared_r2]
 
 	toolbox.run(cmd)
 
-	src1 = os.path.join(outdir, "shared_1.minifq.fastq")
 	dst1 = os.path.join(outdir, f"shared_1.{cov}Xcov.fastq")
-	toolbox.mv(src1, dst1)
+	toolbox.mv(shared_r1_minifq, dst1)
 
 	if args.r2:
-		src2 = os.path.join(outdir, "shared_2.minifq.fastq")
 		dst2 = os.path.join(outdir, f"shared_2.{cov}Xcov.fastq")
-		toolbox.mv(src2, dst2)
+		toolbox.mv(shared_r2_minifq, dst2)
 
 print("[prep] var-cov preparation complete")
 
