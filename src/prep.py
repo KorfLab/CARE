@@ -336,7 +336,7 @@ if not coverages:
 	sys.exit(1)
 
 genome_len = toolbox.get_genome_length(min_pct_genome_file)
-read_len   = toolbox.get_read_length(shared_r1)
+read_len   = toolbox.get_read_length(min_pct_r1)
 
 for cov in coverages:
 	if not isinstance(cov, int) or cov <= 0:
@@ -348,7 +348,7 @@ for cov in coverages:
 
 	cmd = [
 		"python3", "minifq.py",
-		"--r1", shared_r1,
+		"--r1", min_pct_r1,
 		"-n", str(num_reads),
 		"-s", "1",
 		"-o", outdir,
@@ -357,7 +357,7 @@ for cov in coverages:
 	]
 
 	if args.r2:
-		cmd += ["--r2", shared_r2]
+		cmd += ["--r2", min_pct_r2]
 
 	toolbox.run(cmd)
 
