@@ -53,7 +53,7 @@ def cleanup(dir):
 			item.endswith("p.fa") or
 			item.endswith("p.fastq") or
 			item.endswith("rl.fastq") or
-			item.endswith("Xcov.fastq")
+			item.endswith("rc.fastq")
 		):
 			continue
 
@@ -325,51 +325,25 @@ for rl in read_lengths:
 print("[prep] var-rl preparation complete")
 
 
-###########
-# var-cov #
-###########
+##########
+# var-rc #
+##########
 
-print("\n[prep] Generating read subsets for var-cov")
+print("\n[prep] Generating read subsets for var-rc")
 
-coverages = spec.get("coverages", [])
-if not coverages:
-	print("[prep] ERROR: No coverages found in YAML, var-cov prep failed")
+read_counts = spec.get("read_counts", [])
+if not read_counts:
+	print("[prep] ERROR: No read counts found in YAML, var-rc prep failed")
 	sys.exit(1)
 
-genome_len = toolbox.get_genome_length(min_pct_genome_file)
-read_len   = toolbox.get_read_length(shared_r1)
-
-for cov in coverages:
-	if not isinstance(cov, int) or cov <= 0:
-		print(f"[prep] Error: Invalid coverage in YAML: {cov}, must be a positive int")
+for rc in read_counts:
+	if not isinstance(rc, int) or rc <= 0:
+		print(f"[prep] Error: Invalid read count in YAML: {rc}, must be a positive int")
 		sys.exit(1)
 
-	num_reads = (cov * genome_len) // read_len
-	print(f"[prep] Targeting {cov}X coverage achieved by {num_reads} reads")
+# TODO
 
-	cmd = [
-		"python3", "minifq.py",
-		"--r1", shared_r1,
-		"-n", str(num_reads),
-		"-s", "1",
-		"-o", outdir,
-		"--sort",
-		"-v"
-	]
-
-	if args.r2:
-		cmd += ["--r2", shared_r2]
-
-	toolbox.run(cmd)
-
-	dst1 = os.path.join(outdir, f"shared_1.{cov}Xcov.fastq")
-	toolbox.mv(shared_r1_minifq, dst1)
-
-	if args.r2:
-		dst2 = os.path.join(outdir, f"shared_2.{cov}Xcov.fastq")
-		toolbox.mv(shared_r2_minifq, dst2)
-
-print("[prep] var-cov preparation complete")
+print("[prep] var-rc preparation complete")
 
 
 ###########
