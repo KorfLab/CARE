@@ -75,10 +75,10 @@ exp3.add_argument('-o', '--output', required=True,
 exp3.add_argument("-k", "--keep", nargs="+", default=["log"],
                   help="File extensions to keep after cleanup")
 
-# Exp 4: varying coverage
-exp4 = subparsers.add_parser('var-cov', help="Align using reads with various coverages")
+# Exp 4: varying read counts
+exp4 = subparsers.add_parser('var-rc', help="Align using various numbers of reads")
 exp4.add_argument('--r1', nargs='+', required=True,
-                  help="FASTQ files for reads of varying coverage")
+                  help="FASTQ files for varying numbers of reads")
 exp4.add_argument('--r2',
                   help="FASTQ files for paired-end read 2")
 exp4.add_argument('-g', '--genome', required=True,
@@ -127,7 +127,7 @@ elif args.experiment == "var-cpu":
 			aln.index()
 			aln.align()
 			aln.cleanup(args.keep)
-elif args.experiment == "var-cov":
+elif args.experiment == "var-rc":
 	for aligner in args.aligner:
 		aligner_dir = os.path.join(args.output, aligner)
 		for i, r1 in enumerate(args.r1):
