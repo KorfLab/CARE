@@ -181,3 +181,24 @@ def get_read_length(fastq_file):
 		seq = next(fq).strip()
 		return len(seq)
 
+
+def read_fasta(fasta_file):
+	"""Reads a FASTA file and returns a dict of {header: sequence}"""
+	sequences = {}
+	header = None
+	seq_lines = []
+
+	with smart_open_read(fasta_file) as fa:
+		for line in fa:
+			if line.startswith(">"):
+				if header:
+					sequences[header] = "".join(seq_lines)
+				header = line[1:].strip().split()[0]
+				seq_lines = []
+			else:
+				seq_lines.append(line.strip())
+
+	if header:
+		sequences[header] = "".join(seq_lines)
+
+	return sequences
