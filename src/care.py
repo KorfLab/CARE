@@ -76,7 +76,7 @@ exp3.add_argument("-k", "--keep", nargs="+", default=["log"],
                   help="File extensions to keep after cleanup")
 
 # Exp 4: varying read counts
-exp4 = subparsers.add_parser('var-rc', help="Align using various numbers of reads")
+exp4 = subparsers.add_parser('var-rc', help="Align using reads with various read counts")
 exp4.add_argument('--r1', nargs='+', required=True,
                   help="FASTQ files for varying numbers of reads")
 exp4.add_argument('--r2',
