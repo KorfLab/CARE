@@ -254,7 +254,6 @@ smallest_aligner = min(
 r1_for_extract = shrunk_fastqs[smallest_aligner]["r1"]
 shared_r1 = os.path.join(outdir, "shared_1.fastq")
 extract_reads(r1_for_extract, shared_reads, shared_r1)
-
 print(f"[prep] Shared r1 written to {shared_r1}")
 
 if args.r2:
@@ -290,7 +289,7 @@ toolbox.mv(shared_r1_minifq, min_pct_r1)
 if args.r2:
 	shared_r2_minifq = os.path.join(outdir, "shared_2.minifq.fastq")
 	min_pct_r2 = os.path.join(outdir, f"shared_2.{min_pct}p.fastq")
-	toolbox.mv(shared_r2, min_pct_r2)
+	toolbox.mv(shared_r2_minifq, min_pct_r2)
 
 print("[prep] var-gn preparation complete")
 
