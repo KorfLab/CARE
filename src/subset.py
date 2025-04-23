@@ -148,7 +148,7 @@ xfa.add_argument("-g", "--genome", required=True,
 xfa.add_argument("-p", "--scale", type=float, required=True,
 	help="Scale to shrink compared to original (0 < scale <= 1)")
 xfa.add_argument("-v", "--verbose", action="store_true",
-	help="More verbose output")
+	help="Verbose logging")
 
 xfq = subparsers.add_parser("xfq",
 	help="Filter FASTQ using SAM and genome")
@@ -165,7 +165,7 @@ xfq.add_argument("--r2",
 xfq.add_argument("-z", "--gzip", action="store_true",
 	help="Gzip output FASTQ")
 xfq.add_argument("-v", "--verbose", action="store_true",
-	help="More verbose output")
+	help="Verbose logging")
 
 xrl = subparsers.add_parser("xrl",
 	help="Trim FASTQ reads to specified read length")
@@ -178,7 +178,7 @@ xrl.add_argument("-k", "--rl", type=int, required=True,
 xrl.add_argument("-z", "--gzip", action="store_true",
 	help="Output gzipped FASTQ")
 xrl.add_argument("-v", "--verbose", action="store_true",
-	help="More verbose output")
+	help="Verbose logging")
 
 args = parser.parse_args()
 
