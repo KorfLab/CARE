@@ -27,70 +27,70 @@ subparsers = parser.add_subparsers(dest='experiment', help='Experiment type')
 # Exp 1: varying genome sizs
 exp1 = subparsers.add_parser('var-gn', help="Align against genomes with various sizes")
 exp1.add_argument('--r1', required=True,
-                  help="FASTQ file for reads")
+	help="FASTQ file for reads")
 exp1.add_argument('--r2',
-                  help="FASTQ file for paired-end read 2")
+	help="FASTQ file for paired-end read 2")
 exp1.add_argument('-g', '--genome', nargs='+', required=True,
-                  help="FASTA file for genome of varying sizes")
+	help="FASTA file for genome of varying sizes")
 exp1.add_argument('-t', '--thread', type=int, default=4,
-                  help="Number of threads")
+	help="Number of threads")
 exp1.add_argument('-a', '--aligner', nargs='+', required=True,
-                  help="Aligners to run")
+	help="Aligners to run")
 exp1.add_argument('-o', '--output', required=True,
-                  help="Output directory of experiment")
+	help="Output directory of experiment")
 exp1.add_argument("-k", "--keep", nargs="+", default=["log"],
-				  help="File extensions to keep after cleanup")
+	help="File extensions to keep after cleanup")
 
 # Exp 2: varying read lengths
 exp2 = subparsers.add_parser('var-rl', help="Align using reads with various read lengths")
 exp2.add_argument('--r1', nargs='+', required=True,
-                  help="FASTQ files for reads of varying read lengths")
+	help="FASTQ files for reads of varying read lengths")
 exp2.add_argument('--r2', nargs='+',
-                  help="FASTQ files for paired-end read 2")
+	help="FASTQ files for paired-end read 2")
 exp2.add_argument('-g', '--genome', required=True,
-                  help="FASTA file for genome")
+	help="FASTA file for genome")
 exp2.add_argument('-t', '--thread', type=int, default=4,
-                  help="Number of threads")
+	help="Number of threads")
 exp2.add_argument('-a', '--aligner', nargs='+', required=True,
-                  help="Aligners to run")
+	help="Aligners to run")
 exp2.add_argument('-o', '--output', required=True,
-                  help="Output directory of experiment")
+	help="Output directory of experiment")
 exp2.add_argument("-k", "--keep", nargs="+", default=["log"],
-                  help="File extensions to keep after cleanup")
+	help="File extensions to keep after cleanup")
 
 # Exp 3: varying number of threads
 exp3 = subparsers.add_parser('var-cpu', help="Align using various numbers of threads")
 exp3.add_argument('--r1', required=True,
-                  help="FASTQ file for reads")
+	help="FASTQ file for reads")
 exp3.add_argument('--r2',
-                  help="FASTQ file for paired-end read 2")
+	help="FASTQ file for paired-end read 2")
 exp3.add_argument('-g', '--genome', required=True,
-                  help="FASTA file for genome")
+	help="FASTA file for genome")
 exp3.add_argument('-t', '--thread', type=int, nargs='+', required=True,
-                  help="Various number of threads")
+	help="Various number of threads")
 exp3.add_argument('-a', '--aligner', nargs='+', required=True,
-                  help="Aligners to run")
+	help="Aligners to run")
 exp3.add_argument('-o', '--output', required=True,
-                  help="Output directory of experiment")
+	help="Output directory of experiment")
 exp3.add_argument("-k", "--keep", nargs="+", default=["log"],
-                  help="File extensions to keep after cleanup")
+	help="File extensions to keep after cleanup")
 
 # Exp 4: varying read counts
 exp4 = subparsers.add_parser('var-rc', help="Align using reads with various read counts")
 exp4.add_argument('--r1', nargs='+', required=True,
-                  help="FASTQ files for varying numbers of reads")
+	help="FASTQ files for varying numbers of reads")
 exp4.add_argument('--r2',
-                  help="FASTQ files for paired-end read 2")
+	help="FASTQ files for paired-end read 2")
 exp4.add_argument('-g', '--genome', required=True,
-                  help="FASTA file for genome")
+	help="FASTA file for genome")
 exp4.add_argument('-t', '--thread', type=int, default=4,
-                  help="Number of threads")
+	help="Number of threads")
 exp4.add_argument('-a', '--aligner', nargs='+', required=True,
-                  help="Aligners to run")
+	help="Aligners to run")
 exp4.add_argument('-o', '--output', required=True,
-                  help="Output directory of experiment")
+	help="Output directory of experiment")
 exp4.add_argument("-k", "--keep", nargs="+", default=["log"],
-                  help="File extensions to keep after cleanup")
+	help="File extensions to keep after cleanup")
 
 args = parser.parse_args()
 

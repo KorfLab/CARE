@@ -73,7 +73,7 @@ def reservoir_sample_paired(fp1, fp2, k):
 parser = argparse.ArgumentParser(description="Shrink FASTQ file by randomly subsetting")
 parser.add_argument("--r1", required=True,
 	help="Path to input FASTQ file for reads 1")
-parser.add_argument("--r2", 
+parser.add_argument("--r2",
 	help="Path to input FASTQ file for reads 2 for paired-end")
 parser.add_argument("-o", "--output", default=".",
 	help="Directory to save output FASTQ files (default: current directory)")
@@ -183,7 +183,7 @@ else:
 		if args.verbose:
 			print("[minifq] Sorting new reads by header")
 		reservoir = sorted(reservoir, key=lambda read: int(read[0].strip().split()[0].split('.')[1]))
-	
+
 	base1 = remove_extensions(os.path.basename(args.r1), extensions_to_remove)
 	out_file = os.path.join(outdir, base1 + ".minifq.fastq")
 
