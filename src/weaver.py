@@ -114,9 +114,9 @@ if args.command == "reuse":
 	
 	read_len = toolbox.get_read_length(args.r1)
 
-	with toolbox.smart_open_append(r1_out, False) as fout1:
+	with toolbox.smart_open_append(r1_out) as fout1:
 		if args.r2:
-			with toolbox.smart_open_append(r2_out, False) as fout2:
+			with toolbox.smart_open_append(r2_out) as fout2:
 				for i in range(num_to_add):
 					idx = random.randint(0, len(r1_pool) - 1)
 					r1 = r1_pool[idx][:]
@@ -189,9 +189,9 @@ elif args.command == "extend":
 	if args.verbose:
 		print(f"[weaver] Read length set to {read_len}")
 
-	with toolbox.smart_open_append(r1_out, False) as fout1:
+	with toolbox.smart_open_append(r1_out) as fout1:
 		if args.r2:
-			with toolbox.smart_open_append(r2_out, False) as fout2:
+			with toolbox.smart_open_append(r2_out) as fout2:
 				for i in range(num_to_add):
 					seq1 = random.choice(genome)
 
