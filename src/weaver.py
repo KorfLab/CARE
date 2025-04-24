@@ -277,8 +277,8 @@ elif args.command == "synth":
 					qual2 = "J" * read_len
 
 					hdr = f"WEAVERSYNTH.{i+1} {i+1} length={read_len}"
-					fout1.write(f"@{hdr}/1\n{frag1}\n+{hdr}/1\n{qual1}\n")
-					fout2.write(f"@{hdr}/2\n{frag2}\n+{hdr}/2\n{qual2}\n")
+					fout1.write(f"@{hdr}\n{frag1}\n+{hdr}\n{qual1}\n")
+					fout2.write(f"@{hdr}\n{frag2}\n+{hdr}\n{qual2}\n")
 		else:
 			for i in range(target_n):
 				seq = random.choice(genome)
