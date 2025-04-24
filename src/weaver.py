@@ -110,7 +110,7 @@ if args.command == "reuse":
 	if args.r2:
 		with toolbox.smart_open_read(args.r2) as fin2:
 			r2_pool = [read for read in toolbox.fastq_reader(fin2)]
-	
+
 	read_len = toolbox.get_read_length(args.r1)
 
 	with toolbox.smart_open_append(r1_out) as fout1:
@@ -149,7 +149,7 @@ elif args.command == "extend":
 
 	if args.output:
 		os.makedirs(args.output, exist_ok=True)
-	
+
 	random.seed(args.seed)
 	target_n = args.numReads
 
@@ -233,7 +233,7 @@ elif args.command == "extend":
 elif args.command == "synth":
 	if args.output:
 		os.makedirs(args.output, exist_ok=True)
-	
+
 	random.seed(args.seed)
 	target_n = args.numReads
 
