@@ -70,7 +70,8 @@ args = parser.parse_args()
 # main #
 ########
 
-os.makedirs(args.output, exist_ok=True)
+if args.output:
+	os.makedirs(args.output, exist_ok=True)
 
 random.seed(args.seed)
 target_n = args.numReads
