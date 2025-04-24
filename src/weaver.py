@@ -70,14 +70,14 @@ args = parser.parse_args()
 # main #
 ########
 
-if args.output:
-	os.makedirs(args.output, exist_ok=True)
-
 random.seed(args.seed)
 target_n = args.numReads
 
 if args.command == "reuse":
 	toolbox.sc_fastq(args.r1, args.r2)
+
+	if args.output:
+		os.makedirs(args.output, exist_ok=True)
 
 	base_r1 = os.path.splitext(os.path.basename(args.r1))[0]
 	r1_out = os.path.join(args.output, f"{base_r1}.weaver.fastq")
@@ -147,6 +147,9 @@ if args.command == "reuse":
 
 elif args.command == "extend":
 	toolbox.sc_fastq(args.r1, args.r2)
+
+	if args.output:
+		os.makedirs(args.output, exist_ok=True)
 
 	base_r1 = os.path.splitext(os.path.basename(args.r1))[0]
 	r1_out = os.path.join(args.output, f"{base_r1}.weaver.fastq")
@@ -227,6 +230,9 @@ elif args.command == "extend":
 		print(f"[weaver] Reads extended: {num_to_add}")
 
 elif args.command == "synth":
+	if args.output:
+		os.makedirs(args.output, exist_ok=True)
+
 	read_len = args.readLength
 
 	genome_dict = toolbox.read_fasta(args.genome)
