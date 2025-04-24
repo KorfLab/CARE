@@ -132,6 +132,12 @@ def fastq_reader(fp):
 			break
 
 
+def get_num_reads(fq):
+	"""Return the number of reads in a FASTQ file"""
+	with smart_open_read(fq) as f:
+		return sum(1 for _ in f) // 4
+
+
 def sc_fastq(file1, file2=None):
 	"""Sanity check single or paired FASTQ"""
 
@@ -165,12 +171,6 @@ def sc_fastq(file1, file2=None):
 		print(f"[sc-fastq] SC Complete: {file1} and {file2} validated")
 	else:
 		print(f"[sc-fastq] SC Complete: {file1} validated")
-
-
-def get_num_reads(fq):
-	"""Return the number of reads in a FASTQ file"""
-	with smart_open_read(fq) as f:
-		return sum(1 for _ in f) // 4
 
 
 def timestamp():
