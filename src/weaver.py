@@ -70,14 +70,14 @@ args = parser.parse_args()
 # main #
 ########
 
-random.seed(args.seed)
-target_n = args.numReads
-
 if args.command == "reuse":
 	toolbox.sc_fastq(args.r1, args.r2)
 
 	if args.output:
 		os.makedirs(args.output, exist_ok=True)
+
+	random.seed(args.seed)
+	target_n = args.numReads
 
 	base_r1 = os.path.splitext(os.path.basename(args.r1))[0]
 	r1_out = os.path.join(args.output, f"{base_r1}.weaver.fastq")
@@ -150,6 +150,9 @@ elif args.command == "extend":
 
 	if args.output:
 		os.makedirs(args.output, exist_ok=True)
+	
+	random.seed(args.seed)
+	target_n = args.numReads
 
 	base_r1 = os.path.splitext(os.path.basename(args.r1))[0]
 	r1_out = os.path.join(args.output, f"{base_r1}.weaver.fastq")
@@ -232,6 +235,9 @@ elif args.command == "extend":
 elif args.command == "synth":
 	if args.output:
 		os.makedirs(args.output, exist_ok=True)
+	
+	random.seed(args.seed)
+	target_n = args.numReads
 
 	read_len = args.readLength
 
