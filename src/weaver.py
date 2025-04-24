@@ -91,8 +91,7 @@ if args.command == "reuse":
 	if args.verbose:
 		print(f"[weaver] Copied original reads to:\n\t{r1_out}" + (f"\n\t{r2_out}" if args.r2 else ""))
 
-	with toolbox.smart_open_read(args.r1) as f:
-		orig_reads = sum(1 for _ in f) // 4
+	orig_reads = toolbox.get_num_reads(args.r1)
 
 	if args.verbose:
 		print(f"[weaver] Original reads: {orig_reads}")
@@ -166,8 +165,7 @@ elif args.command == "extend":
 	if args.verbose:
 		print(f"[weaver] Copied original reads to:\n\t{r1_out}" + (f"\n\t{r2_out}" if args.r2 else ""))
 
-	with toolbox.smart_open_read(args.r1) as f:
-		orig_reads = sum(1 for _ in f) // 4
+	orig_reads = toolbox.get_num_reads(args.r1)
 
 	if args.verbose:
 		print(f"[weaver] Original reads: {orig_reads}")
