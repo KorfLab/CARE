@@ -113,6 +113,14 @@ def smart_open_write(filename, use_gzip):
 		return gzip.open(filename, "wt")
 	else:
 		return open(filename, "w")
+	
+
+def smart_open_append(filename):
+	"""Open a file for appending, support gzipped files"""
+	if filename.endswith('.gz'):
+		return gzip.open(filename, "at")
+	else:
+		return open(filename, "a")
 
 
 def fastq_reader(fp):
