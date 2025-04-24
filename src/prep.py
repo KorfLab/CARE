@@ -341,7 +341,66 @@ for rc in read_counts:
 		print(f"[prep] Error: Invalid read count in YAML: {rc}, must be a positive int")
 		sys.exit(1)
 
-# TODO
+	print(f"\n[prep] Targeting {rc} reads")
+
+	shared_num_read = toolbox.get_num_reads(shared_r1)
+
+	print(f"[prep] Available reads in shared FASTQ: {shared_num_read}")
+
+	if shared_num_read >= rc:
+		print(f"[prep] Enough reads available - sampling {rc} using minifq.py")
+
+		cmd = [
+			"python3", "minifq.py",
+			"--r1", shared_r1,
+			"-n", str(rc),
+			"-o", outdir,
+			"-s", "1",
+			"--sort",
+			"-v"
+		]
+		if args.r2:
+			cmd += ["--r2", shared_r2]
+
+		toolbox.run(cmd)
+
+		base_r1 = os.path.splitext(os.path.basename(shared_r1))[0]
+		minifq_r1 = os.path.join(outdir, f"{base_r1}.minifq.fastq")
+		rc_r1 = os.path.join(outdir, f"{base_r1}.{rc}rc.fastq")
+		toolbox.mv(minifq_r1, rc_r1)
+
+		if args.r2:
+			base_r2 = os.path.splitext(os.path.basename(shared_r2))[0]
+			minifq_r2 = os.path.join(outdir, f"{base_r2}.minifq.fastq")
+			rc_r2 = os.path.join(outdir, f"{base_r2}.{rc}rc.fastq")
+			toolbox.mv(minifq_r2, rc_r2)
+
+	else:
+		print(f"[prep] Not enough reads - extending to {rc} using weaver.py reuse")
+
+		cmd = [
+			"python3", "weaver.py", "reuse",
+			"--r1", shared_r1,
+			"-n", str(rc),
+			"-o", outdir,
+			"-s", "1",
+			"-v"
+		]
+		if args.r2:
+			cmd += ["--r2", shared_r2]
+
+		toolbox.run(cmd)
+
+		base_r1 = os.path.splitext(os.path.basename(shared_r1))[0]
+		weaver_r1 = os.path.join(outdir, f"{base_r1}.weaver.fastq")
+		rc_r1 = os.path.join(outdir, f"{base_r1}.{rc}rc.fastq")
+		toolbox.mv(weaver_r1, rc_r1)
+
+		if args.r2:
+			base_r2 = os.path.splitext(os.path.basename(shared_r2))[0]
+			weaver_r2 = os.path.join(outdir, f"{base_r2}.weaver.fastq")
+			rc_r2 = os.path.join(outdir, f"{base_r2}.{rc}rc.fastq")
+			toolbox.mv(weaver_r2, rc_r2)
 
 print("[prep] var-rc preparation complete")
 
