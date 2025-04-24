@@ -283,7 +283,7 @@ if args.r2:
 toolbox.run(cmd)
 
 shared_r1_minifq = os.path.join(outdir, "shared_1.minifq.fastq")
-min_pct_r1 = os.path.join(outdir, f"shared_1.{min_pct*100}p.fastq")
+min_pct_r1 = os.path.join(outdir, f"shared_1.{int(min_pct*100)}p.fastq")
 toolbox.mv(shared_r1_minifq, min_pct_r1)
 
 if args.r2:
