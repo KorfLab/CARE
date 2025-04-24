@@ -13,16 +13,20 @@ import toolbox
 #########
 
 def write_to_new_genome(cur_header, cur_seqs, scale, outfile, verbose=False):
-	"""Helper function to process and write one chromosome's sequence"""
+	"""Helper function to process and write one chromosome's sequence with 80-char lines"""
 	seq = "".join(cur_seqs)
 	new_length = int(len(seq) * scale)
+	trimmed_seq = seq[:new_length]
+
 	outfile.write(f">{cur_header}\n")
-	outfile.write(seq[:new_length] + "\n")
+	for i in range(0, len(trimmed_seq), 80):
+		outfile.write(f"{trimmed_seq[i:i+80]}\n")
 
 	if verbose:
 		print(f"Processed chromosome {cur_header}:")
 		print(f"\tOld length {len(seq)}")
 		print(f"\tNew length {new_length}")
+
 	return new_length
 
 
