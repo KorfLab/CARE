@@ -5,7 +5,7 @@ from toolbox import run, cp, timestamp, only_keep_ext
 
 
 class Aligner:
-	def __init__(self, name, genome, outdir, r1, r2=None, threads=4, time=False):
+	def __init__(self, name, genome, outdir, r1, r2=None, threads=4, time=False, indexed=False):
 		self.name = name
 		self.genome = genome
 		self.outdir = outdir
@@ -18,8 +18,10 @@ class Aligner:
 
 		self.index_dir = os.path.join(outdir, f"{self.name}_index")
 		self.ref = os.path.join(self.index_dir, "ref.fa")
-		os.makedirs(self.index_dir, exist_ok=True)
-		cp(self.genome, self.ref)
+
+		if not indexed:
+			os.makedirs(self.index_dir, exist_ok=True)
+			cp(self.genome, self.ref)
 
 		self.sam = None
 

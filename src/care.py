@@ -104,7 +104,7 @@ if args.experiment == "var-gn":
 		aligner_dir = os.path.join(args.output, aligner)
 		for genome in args.genome:
 			toolbox.sc_fastq(args.r1, args.r2)
-			aln = ALIGNER_CLASS_MAP[aligner](genome, aligner_dir, args.r1, args.r2, args.thread, time=True)
+			aln = ALIGNER_CLASS_MAP[aligner](genome, aligner_dir, args.r1, args.r2, args.thread, time=True, indexed=False)
 			aln.index()
 			aln.align()
 			aln.cleanup(args.keep)
@@ -115,7 +115,7 @@ elif args.experiment == "var-rl":
 		for i, r1 in enumerate(args.r1):
 			r2 = args.r2[i] if args.r2 else None
 			toolbox.sc_fastq(r1, r2)
-			aln = ALIGNER_CLASS_MAP[aligner](args.genome, aligner_dir, r1, r2, args.thread, time=True)
+			aln = ALIGNER_CLASS_MAP[aligner](args.genome, aligner_dir, r1, r2, args.thread, time=True, indexed=indexed)
 			if not indexed:
 				aln.index()
 				indexed = True
@@ -127,7 +127,7 @@ elif args.experiment == "var-cpu":
 		indexed = False
 		for thread in args.thread:
 			toolbox.sc_fastq(args.r1, args.r2)
-			aln = ALIGNER_CLASS_MAP[aligner](args.genome, aligner_dir, args.r1, args.r2, thread, time=True)
+			aln = ALIGNER_CLASS_MAP[aligner](args.genome, aligner_dir, args.r1, args.r2, thread, time=True, indexed=indexed)
 			if not indexed:
 				aln.index()
 				indexed = True
@@ -140,7 +140,7 @@ elif args.experiment == "var-rc":
 		for i, r1 in enumerate(args.r1):
 			r2 = args.r2[i] if args.r2 else None
 			toolbox.sc_fastq(r1, r2)
-			aln = ALIGNER_CLASS_MAP[aligner](args.genome, aligner_dir, r1, r2, args.thread, time=True)
+			aln = ALIGNER_CLASS_MAP[aligner](args.genome, aligner_dir, r1, r2, args.thread, time=True, indexed=indexed)
 			if not indexed:
 				aln.index()
 				indexed = True
