@@ -79,7 +79,7 @@ exp3.add_argument("-k", "--keep", nargs="+", default=["log"],
 exp4 = subparsers.add_parser('var-rc', help="Align using reads with various read counts")
 exp4.add_argument('--r1', nargs='+', required=True,
 	help="FASTQ files for varying numbers of reads")
-exp4.add_argument('--r2',
+exp4.add_argument('--r2', nargs='+',
 	help="FASTQ files for paired-end read 2")
 exp4.add_argument('-g', '--genome', required=True,
 	help="FASTA file for genome")
