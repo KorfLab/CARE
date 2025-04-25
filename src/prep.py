@@ -288,7 +288,7 @@ toolbox.mv(shared_r1_minifq, min_pct_r1)
 
 if args.r2:
 	shared_r2_minifq = os.path.join(outdir, "shared_2.minifq.fastq")
-	min_pct_r2 = os.path.join(outdir, f"shared_2.{min_pct}p.fastq")
+	min_pct_r2 = os.path.join(outdir, f"shared_2.{int(min_pct*100)}p.fastq")
 	toolbox.mv(shared_r2_minifq, min_pct_r2)
 
 print("[prep] var-gn preparation complete")
@@ -418,3 +418,69 @@ if args.cleanup:
 
 print(f"\n[prep] CARE prep complete")
 print(f"[prep] All outputs in: {outdir}")
+
+
+###############
+# run-care.sh #
+###############
+
+print("\n[prep] Generating run-care.sh ")
+
+min_pct_int = int(min_pct * 100)
+
+astr = " ".join(f"\"{aln}\"" for aln in args.aligners)
+
+with open("run-care.sh", "w") as fout:
+	fout.write("#!/bin/bash\n")
+	fout.write("set -e\n\n")
+	fout.write(f'PREP_DIR="{outdir}"\n')
+	fout.write("OUT_DIR=\"results\"\n")
+	fout.write("THREADS=4\n")
+	fout.write(f"ALIGNERS=({astr})\n\n")
+	fout.write("mkdir -p \"$OUT_DIR\"\n\n")
+
+	# var-gn
+	fout.write("# Experiment 1: var-gn\n")
+	fout.write("python3 care.py var-gn \\\n")
+	fout.write(f"  --r1 \"$PREP_DIR/shared_1.{min_pct_int}p.fastq\" \\\n")
+	if args.r2:
+		fout.write(f"  --r2 \"$PREP_DIR/shared_2.{min_pct_int}p.fastq\" \\\n")
+	fout.write("  -g \"$PREP_DIR\"/*p.fa \\\n")
+	fout.write("  -t $THREADS \\\n")
+	fout.write("  -a \"${ALIGNERS[@]}\" \\\n")
+	fout.write("  -o \"$OUT_DIR/var-gn\"\n\n")
+
+	# var-rl
+	fout.write("# Experiment 2: var-rl\n")
+	fout.write("python3 care.py var-rl \\\n")
+	fout.write(f"  --r1 \"$PREP_DIR/shared_1.{min_pct_int}p.\"*rl.fastq \\\n")
+	if args.r2:
+		fout.write(f"  --r2 \"$PREP_DIR/shared_2.{min_pct_int}p.\"*rl.fastq \\\n")
+	fout.write(f"  -g \"$PREP_DIR\"/*{min_pct_int}p.fa \\\n")
+	fout.write("  -t $THREADS \\\n")
+	fout.write("  -a \"${ALIGNERS[@]}\" \\\n")
+	fout.write("  -o \"$OUT_DIR/var-rl\"\n\n")
+
+	# var-cpu
+	fout.write("# Experiment 3: var-cpu\n")
+	fout.write("python3 care.py var-cpu \\\n")
+	fout.write(f"  --r1 \"$PREP_DIR/shared_1.{min_pct_int}p.fastq\" \\\n")
+	if args.r2:
+		fout.write(f"  --r2 \"$PREP_DIR/shared_2.{min_pct_int}p.fastq\" \\\n")
+	fout.write(f"  -g \"$PREP_DIR\"/*{min_pct_int}p.fa \\\n")
+	fout.write("  -t 1 2 3 4 \\\n")
+	fout.write("  -a \"${ALIGNERS[@]}\" \\\n")
+	fout.write("  -o \"$OUT_DIR/var-cpu\"\n\n")
+
+	# var-rc
+	fout.write("# Experiment 4: var-rc\n")
+	fout.write("python3 care.py var-rc \\\n")
+	fout.write("  --r1 \"$PREP_DIR\"/shared_1.*rc.fastq \\\n")
+	if args.r2:
+		fout.write("  --r2 \"$PREP_DIR\"/shared_2.*rc.fastq \\\n")
+	fout.write(f"  -g \"$PREP_DIR\"/*{min_pct_int}p.fa \\\n")
+	fout.write("  -t $THREADS \\\n")
+	fout.write("  -a \"${ALIGNERS[@]}\" \\\n")
+	fout.write("  -o \"$OUT_DIR/var-rc\"\n")
+
+print(f"[prep] Generated run-care.sh")
