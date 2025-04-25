@@ -42,8 +42,8 @@ class Aligner:
 
 
 class StarAligner(Aligner):
-	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False):
-		super().__init__("star", genome, outdir, r1, r2, threads, time)
+	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False, indexed=False):
+		super().__init__("star", genome, outdir, r1, r2, threads, time, indexed)
 
 	def index(self):
 		tmp_dir = os.path.join(self.index_dir, "tmp")
@@ -110,8 +110,8 @@ class StarAligner(Aligner):
 
 
 class Hisat2Aligner(Aligner):
-	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False):
-		super().__init__("hisat2", genome, outdir, r1, r2, threads, time)
+	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False, indexed=False):
+		super().__init__("hisat2", genome, outdir, r1, r2, threads, time, indexed)
 
 	def index(self):
 		cmd = [
@@ -153,8 +153,8 @@ class Hisat2Aligner(Aligner):
 
 
 class Bowtie2Aligner(Aligner):
-	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False):
-		super().__init__("bowtie2", genome, outdir, r1, r2, threads, time)
+	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False, indexed=False):
+		super().__init__("bowtie2", genome, outdir, r1, r2, threads, time, indexed)
 
 	def index(self):
 		cmd = [
@@ -196,8 +196,8 @@ class Bowtie2Aligner(Aligner):
 
 
 class BwaAligner(Aligner):
-	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False):
-		super().__init__("bwa", genome, outdir, r1, r2, threads, time)
+	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False, indexed=False):
+		super().__init__("bwa", genome, outdir, r1, r2, threads, time, indexed)
 
 	def index(self):
 		cmd = [
@@ -233,8 +233,8 @@ class BwaAligner(Aligner):
 
 
 class Minimap2Aligner(Aligner):
-	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False):
-		super().__init__("minimap2", genome, outdir, r1, r2, threads, time)
+	def __init__(self, genome, outdir, r1, r2=None, threads=4, time=False, indexed=False):
+		super().__init__("minimap2", genome, outdir, r1, r2, threads, time, indexed)
 		self.mmi = os.path.join(self.index_dir, "ref.mmi")
 
 	def index(self):
