@@ -120,7 +120,7 @@ elif args.experiment == "var-rl":
 				aln.index()
 				indexed = True
 			aln.align()
-			aln.cleanup(args.keep)
+		aln.cleanup(args.keep)
 elif args.experiment == "var-cpu":
 	for aligner in args.aligner:
 		aligner_dir = os.path.join(args.output, aligner)
@@ -132,7 +132,7 @@ elif args.experiment == "var-cpu":
 				aln.index()
 				indexed = True
 			aln.align()
-			aln.cleanup(args.keep)
+		aln.cleanup(args.keep)
 elif args.experiment == "var-rc":
 	for aligner in args.aligner:
 		aligner_dir = os.path.join(args.output, aligner)
@@ -145,6 +145,6 @@ elif args.experiment == "var-rc":
 				aln.index()
 				indexed = True
 			aln.align()
-			aln.cleanup(args.keep)
+		aln.cleanup(args.keep)
 else:
 	parser.print_help()
