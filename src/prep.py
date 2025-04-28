@@ -428,7 +428,7 @@ print("\n[prep] Generating run-care.sh ")
 
 min_pct_int = int(min_pct * 100)
 
-astr = " ".join(f"\"{aln}\"" for aln in args.aligners)
+astr = " ".join(f"\"{aln}\"" for aln in args.aligner)
 
 with open("run-care.sh", "w") as fout:
 	fout.write("#!/bin/bash\n")
