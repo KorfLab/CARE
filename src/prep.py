@@ -162,7 +162,7 @@ for p in pcts:
 	toolbox.run(cmd)
 
 	src = os.path.join(gdir, f"{gbsn}.shrunk.fa")
-	dst = os.path.join(outdir, f"{gbsn}-{int(p*100)}p.fa")
+	dst = os.path.join(outdir, f"{gbsn}-0{int(p*100)}p.fa")
 	toolbox.mv(src, dst)
 	pct_genome_file_path[p] = dst
 
