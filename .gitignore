@@ -110,3 +110,4 @@ venv.bak/
 /src/care.test.py
 /src/test.py
 /test
+/src/logs
