@@ -71,7 +71,7 @@ def cleanup(dir):
 # argparse #
 ############
 
-parser = argparse.ArgumentParser(description="Batch subset genome using percentages from YAML")
+parser = argparse.ArgumentParser(description="Preparation for CARE")
 parser.add_argument("-g", "--genome", required=True,
 	help="Genome FASTA file")
 parser.add_argument("-y", "--yaml", required=True,
