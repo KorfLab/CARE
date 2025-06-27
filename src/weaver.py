@@ -14,8 +14,7 @@ import toolbox
 parser = argparse.ArgumentParser(description="Generate or extend FASTQ files to a set number of reads")
 subparsers = parser.add_subparsers(dest="command", help="weaver modes: reuse, extend, synth")
 
-reuse = subparsers.add_parser("reuse",
-	help="Reuse existing reads")
+reuse = subparsers.add_parser("reuse", help="Reuse existing reads")
 reuse.add_argument("--r1", required=True,
 	help="FASTQ file for reads")
 reuse.add_argument("--r2",
